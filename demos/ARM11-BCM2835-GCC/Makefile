@@ -5,7 +5,7 @@
 
 # Compiler options here.
 ifeq ($(USE_OPT),)
-  USE_OPT = -O2 -ggdb -fomit-frame-pointer -mabi=apcs-gnu
+  USE_OPT = -O2 -ggdb -fomit-frame-pointer -mabi=apcs-gnu -DSIMULATOR
 endif
 
 # C specific options here (added to USE_OPT).
@@ -169,7 +169,7 @@ DLIBS =
 
 # List all user C define here, like -D_DEBUG=1
 ifeq ($(EXTENDED_SHELL), yes)
-UDEFS = -DEXTENDED_SHELL=1
+UDEFS = -DEXTENDED_SHELL
 else
 UDEFS =
 endif

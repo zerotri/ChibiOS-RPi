@@ -56,9 +56,6 @@ static const SerialConfig default_config = {
 /* Driver local functions.                                                   */
 /*===========================================================================*/
 
-bool_t logged;
-bool_t logged2;
-
 static bool_t input_interrupt(SerialDriver* sdp) {
     UNUSED(sdp);
 
