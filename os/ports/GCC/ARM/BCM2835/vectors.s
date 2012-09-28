@@ -54,8 +54,8 @@ _start:
         ldr     pc, _prefetch
         ldr     pc, _abort
         nop
-        ldr     pc, [pc,#-0xF20]        /* AIC - AIC_IVR */
-        ldr     pc, [pc,#-0xF20]        /* AIC - AIC_FVR */
+        ldr     pc, _irq
+        ldr     pc, _fiq
 
 _reset:
         .word   ResetHandler            /* In crt0.s */
@@ -68,8 +68,10 @@ _prefetch:
 _abort:
         .word   AbortHandler
         .word   0
-        .word   0
-        .word   0
+_irq:
+        .word   IrqHandler
+_fiq:
+        .word   FiqHandler
 
 .text
 .code 32
@@ -92,6 +94,9 @@ PrefetchHandler:
 .weak AbortHandler
 AbortHandler:
 
+.weak IrqHandler
+IrqHandler:
+
 .weak FiqHandler
 FiqHandler:
 
@@ -99,6 +104,28 @@ FiqHandler:
 _unhandled_exception:
         b       _unhandled_exception
 
+.global __early_init
+__early_init:
+        mov r0,#0x8000
+        mov r1,#0x0000
+        ldmia r0!,{r2,r3,r4,r5,r6,r7,r8,r9}
+        stmia r1!,{r2,r3,r4,r5,r6,r7,r8,r9}
+        ldmia r0!,{r2,r3,r4,r5,r6,r7,r8,r9}
+        stmia r1!,{r2,r3,r4,r5,r6,r7,r8,r9}
+        bx      lr
+
+.global arm_enable_irq
+arm_enable_irq:
+    mrs r0,cpsr
+    bic r0,r0,#0x80
+    msr cpsr_c,r0
+    bx lr
+
+.global get_cpsr
+get_cpsr:
+  mrs r0,cpsr
+  bx lr
+ 
 #endif
 
 /** @} */

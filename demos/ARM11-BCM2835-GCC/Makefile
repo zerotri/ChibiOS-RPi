@@ -5,7 +5,7 @@
 
 # Compiler options here.
 ifeq ($(USE_OPT),)
-  USE_OPT = -O2 -ggdb -fomit-frame-pointer -mabi=apcs-gnu -DSIMULATOR
+  USE_OPT = -O2 -ggdb -fomit-frame-pointer -mabi=apcs-gnu
 endif
 
 # C specific options here (added to USE_OPT).
@@ -149,6 +149,9 @@ DDEFS =
 
 # List all default ASM defines here, like -D_DEBUG=1
 DADEFS =
+
+# List extra objdump defines here.
+ODDEFS = -D
 
 # List all default directories to look for include files here
 DINCDIR =

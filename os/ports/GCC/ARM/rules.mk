@@ -56,7 +56,7 @@ LIBS      = $(DLIBS) $(ULIBS)
 
 # Various settings
 MCFLAGS   = -mcpu=$(MCU)
-ODFLAGS	  = -x --syms
+ODFLAGS	  = -x --syms $(ODDEFS)
 ASFLAGS   = $(MCFLAGS) -Wa,-amhls=$(LSTDIR)/$(notdir $(<:.s=.lst)) $(ADEFS)
 ASXFLAGS  = $(MCFLAGS) -Wa,-amhls=$(LSTDIR)/$(notdir $(<:.S=.lst)) $(ADEFS)
 CFLAGS    = $(MCFLAGS) $(OPT) $(COPT) $(CWARN) -Wa,-alms=$(LSTDIR)/$(notdir $(<:.c=.lst)) $(DEFS)

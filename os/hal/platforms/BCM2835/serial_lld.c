@@ -56,23 +56,6 @@ static const SerialConfig default_config = {
 /* Driver local functions.                                                   */
 /*===========================================================================*/
 
-static bool_t input_interrupt(SerialDriver* sdp) {
-    UNUSED(sdp);
-
-    while (uart_data_ready()) {
-        chSysLockFromIsr();
-        sdIncomingDataI(sdp, uart_recv());
-        chSysUnlockFromIsr();
-        return TRUE;
-    }
-	
-    return FALSE;
-}
-
-/*===========================================================================*/
-/* Driver interrupt handlers.                                                */
-/*===========================================================================*/
-
 static void output_notify(GenericQueue *qp) {
     UNUSED(qp);
 
@@ -86,6 +69,23 @@ static void output_notify(GenericQueue *qp) {
 }
 
 /*===========================================================================*/
+/* Driver interrupt handlers.                                                */
+/*===========================================================================*/
+
+bool_t sd_lld_handle_interrupts( SerialDriver *sdp ) {
+    if (uart_rx_interrupt_pending()) {
+		chSysLockFromIsr();
+		do {			
+			sdIncomingDataI(sdp, uart_recv());
+		} while (uart_rx_interrupt_pending());
+		chSysUnlockFromIsr();
+		return TRUE;
+	}
+	
+    return FALSE;
+}
+
+/*===========================================================================*/
 /* Driver exported functions.                                                */
 /*===========================================================================*/
 
@@ -96,7 +96,9 @@ static void output_notify(GenericQueue *qp) {
  */
 void sd_lld_init(void) {
   sdObjectInit(&SD1, NULL, output_notify);
+  IRQ_DISABLE1 |= 1<<29;
   uart_init();
+  IRQ_ENABLE1 |= 1<<29;
 }
 
 /**
@@ -128,18 +130,6 @@ void sd_lld_start(SerialDriver *sdp, const SerialConfig *config) {
  */
 void sd_lld_stop(SerialDriver *sdp) {
   (void)sdp;
-}
-
-bool_t sd_lld_data_ready(void) {
-  bool_t b;
-
-  //CH_IRQ_PROLOGUE();
-
-  b =  input_interrupt(&SD1);
-
-  //CH_IRQ_EPILOGUE();
-
-  return b;
 }
 
 #endif /* HAL_USE_SERIAL */

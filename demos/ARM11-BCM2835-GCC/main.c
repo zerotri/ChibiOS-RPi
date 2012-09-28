@@ -123,7 +123,7 @@ int main(void) {
    */
   sdStart(&SD1, NULL); 
   chprintf((BaseSequentialStream *)&SD1, "Main (SD1 started)\r\n");
-  
+
   shellInit();
   shellCreate(&shell_config, SHELL_WA_SIZE, NORMALPRIO + 1);
 
@@ -139,9 +139,6 @@ int main(void) {
    */
   chThdWait(chThdSelf());
 
-  // while (!chThdShouldTerminate()) {
-  //  chThdSleepMilliseconds(1000);
-  //}
-
   return 0;
+
 }

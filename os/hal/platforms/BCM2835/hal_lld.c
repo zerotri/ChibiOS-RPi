@@ -49,9 +49,51 @@ unsigned int nextSystemTickTime;
 /* Driver local functions.                                                   */
 /*===========================================================================*/
 
+// Clear interrupt - ARM_TIMER_CLI = 0
+
+static void systimer_init( void )
+{
+	// 1 MHz clock, Counter=1000, 1 ms tick
+    ARM_TIMER_CTL = 0x003E0000;
+    ARM_TIMER_LOD = 1000-1;
+    ARM_TIMER_RLD = 1000-1;
+    ARM_TIMER_DIV = 0x000000F9;
+    ARM_TIMER_CLI = 0;
+    ARM_TIMER_CTL = 0x003E00A2;
+
+    IRQ_ENABLE_BASIC = 1;
+}
+
+unsigned int ticks = 0;
+
+static void handle_systimer_interrupts( void )
+{
+	// Update the system time
+    chSysLockFromIsr();
+    chSysTimerHandlerI();
+    chSysUnlockFromIsr();
+
+	// Clear timer interrupt
+	ARM_TIMER_CLI = 0;
+}
+
 /*===========================================================================*/
 /* Driver interrupt handlers.                                                */
 /*===========================================================================*/
+
+/**
+ * @brief Interrupt handler
+ *
+ */
+CH_IRQ_HANDLER(IrqHandler)
+{
+    CH_IRQ_PROLOGUE();
+
+	sd_lld_handle_interrupts(&SD1);
+	handle_systimer_interrupts();
+
+    CH_IRQ_EPILOGUE();
+}
 
 /*===========================================================================*/
 /* Driver exported functions.                                                */
@@ -63,45 +105,7 @@ unsigned int nextSystemTickTime;
  * @notapi
  */
 void hal_lld_init(void) {
-  timer_init();
+	systimer_init();
 }
-
-/**
- * @brief "Interrupt" Polling
- */
-void ChkIntSources(void) {
-
-#if HAL_USE_SERIAL
-  if (sd_lld_data_ready()) {
-    dbg_check_lock();
-    if (chSchIsPreemptionRequired())
-      chSchDoReschedule();
-    dbg_check_unlock();
-    return;
-  }
-#endif
-
-
-  unsigned int now = timer_ticks();
-  
-  if (now > nextSystemTickTime) {
-    nextSystemTickTime = now + systemTickDuration;
-
-    //CH_IRQ_PROLOGUE();
-
-    chSysLockFromIsr();
-    chSysTimerHandlerI();
-    chSysUnlockFromIsr();
-
-    //CH_IRQ_EPILOGUE();
-
-    dbg_check_lock();
-    if (chSchIsPreemptionRequired())
-      chSchDoReschedule();
-    dbg_check_unlock();    
-  }
-
-}
-
 
 /** @} */

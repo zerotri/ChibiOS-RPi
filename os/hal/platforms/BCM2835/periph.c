@@ -2,34 +2,6 @@
 //-------------------------------------------------------------------------
 #include "periph.h"
 
-#define ARM_TIMER_CTL *((memory)0x2000B408)
-#define ARM_TIMER_CNT *((memory)0x2000B420)
-
-#define GPFSEL0 	*((memory)0x20200000)
-#define GPFSEL1 	*((memory)0x20200004)
-#define GPFSEL2 	*((memory)0x20200008)
-#define GPFSEL3 	*((memory)0x2020000C)
-#define GPFSEL4 	*((memory)0x20200010)
-#define GPFSEL6 	*((memory)0x20200014)
-
-#define GPPUD       *((memory)0x20200094)
-#define GPPUDCLK0   *((memory)0x20200098)
-
-#define AUX_ENABLES     *((memory)0x20215004)
-#define AUX_MU_IO_REG   *((memory)0x20215040)
-#define AUX_MU_IER_REG  *((memory)0x20215044)
-#define AUX_MU_IIR_REG  *((memory)0x20215048)
-#define AUX_MU_LCR_REG  *((memory)0x2021504C)
-#define AUX_MU_MCR_REG  *((memory)0x20215050)
-#define AUX_MU_LSR_REG  *((memory)0x20215054)
-#define AUX_MU_MSR_REG  *((memory)0x20215058)
-#define AUX_MU_SCRATCH  *((memory)0x2021505C)
-#define AUX_MU_CNTL_REG *((memory)0x20215060)
-#define AUX_MU_STAT_REG *((memory)0x20215064)
-#define AUX_MU_BAUD_REG *((memory)0x20215068)
-
-void hexstring ( unsigned int d );
-
 //-------------------------------------------------------------------------
 
 void delay(unsigned int n)
@@ -95,7 +67,7 @@ unsigned int uart_data_ready()
 
 #define CLOCK_FREQ 250000000
 
-unsigned int uart_baudrate_reg(unsigned int baudrate) {
+unsigned int uart_baudrate(unsigned int baudrate) {
 	return (CLOCK_FREQ / (8 * baudrate)) - 1;
 }
 
@@ -103,13 +75,13 @@ void uart_init ( void )
 {	
     AUX_ENABLES = 1;
     
-    AUX_MU_IER_REG 	= 0x00000000;
-    AUX_MU_CNTL_REG = 0x00000000;
-    AUX_MU_LCR_REG 	= 0x00000003;
-    AUX_MU_MCR_REG	= 0x00000000;
-    AUX_MU_IER_REG 	= 0x00000000;	
-    AUX_MU_IIR_REG	= 0x000000C6;
-    AUX_MU_BAUD_REG = uart_baudrate_reg(115200);
+    AUX_MU_IER_REG 	= 0x00;
+    AUX_MU_CNTL_REG = 0x00;
+    AUX_MU_LCR_REG 	= 0x03;
+    AUX_MU_MCR_REG	= 0x00;
+    AUX_MU_IER_REG 	= 0x05;
+    AUX_MU_IIR_REG	= 0xC6; 
+    AUX_MU_BAUD_REG = uart_baudrate(115200);
     
     gpio_setmode(14, GPFN_ALT5);
     gpio_setmode(15, GPFN_ALT5);
@@ -120,9 +92,15 @@ void uart_init ( void )
     delay(150);
     GPPUDCLK0 = 0;
     
-    AUX_MU_CNTL_REG = 0x00000003;
+    AUX_MU_CNTL_REG = 0x03;
 }
 
+unsigned int uart_rx_interrupt_pending( void )
+{
+  unsigned int iir = AUX_MU_IIR_REG;
+  if((iir & 1)==1) return 0;
+  return  (iir & 6) == 4;
+}
 
 //------------------------------------------------------------------------
 void hexstrings ( unsigned int d )

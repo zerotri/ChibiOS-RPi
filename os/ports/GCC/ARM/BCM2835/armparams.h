@@ -37,19 +37,10 @@
  */
 #define ARM_CORE                ARM_CORE_ARM1176JZF_S
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-	void ChkIntSources(void);
-#ifdef __cplusplus
-}
-#endif
-
 /**
  * @brief   BCM2835-specific wait for interrupt.
- * @details This implementation drives the "interrupt" polling
  */
-#define port_wait_for_interrupt() ChkIntSources()
+#define port_wait_for_interrupt() 
   
 #endif /* _ARMPARAMS_H_ */
 

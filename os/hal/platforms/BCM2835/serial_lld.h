@@ -100,7 +100,8 @@ extern "C" {
   void sd_lld_init( void );
   void sd_lld_start( SerialDriver *sdp, const SerialConfig *config );
   void sd_lld_stop( SerialDriver *sdp );
-	bool_t sd_lld_data_ready( void );
+
+  bool_t sd_lld_handle_interrupts( SerialDriver *sdp );
 #ifdef __cplusplus
 }
 #endif
