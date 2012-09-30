@@ -23,7 +23,6 @@
 #include "test.h"
 #include "shell.h"
 #include "chprintf.h"
-#include "periph.h"
 
 #define SHELL_WA_SIZE       THD_WA_SIZE(4096)
 

@@ -28,7 +28,6 @@
 
 #include "ch.h"
 #include "hal.h"
-#include "periph.h"
 
 /*===========================================================================*/
 /* Driver local definitions.                                                 */
@@ -42,39 +41,42 @@
 /* Driver local variables.                                                   */
 /*===========================================================================*/
 
-unsigned int systemTickDuration = 1000;
-unsigned int nextSystemTickTime;
-
 /*===========================================================================*/
 /* Driver local functions.                                                   */
 /*===========================================================================*/
 
-// Clear interrupt - ARM_TIMER_CLI = 0
-
+/**
+ * @brief Start the system timer
+ *
+ * @notapi
+ */
 static void systimer_init( void )
 {
-	// 1 MHz clock, Counter=1000, 1 ms tick
-    ARM_TIMER_CTL = 0x003E0000;
-    ARM_TIMER_LOD = 1000-1;
-    ARM_TIMER_RLD = 1000-1;
-    ARM_TIMER_DIV = 0x000000F9;
-    ARM_TIMER_CLI = 0;
-    ARM_TIMER_CTL = 0x003E00A2;
+  // 1 MHz clock, Counter=1000, 1 ms tick
+  ARM_TIMER_CTL = 0x003E0000;
+  ARM_TIMER_LOD = 1000-1;
+  ARM_TIMER_RLD = 1000-1;
+  ARM_TIMER_DIV = 0x000000F9;
+  ARM_TIMER_CLI = 0;
+  ARM_TIMER_CTL = 0x003E00A2;
 
-    IRQ_ENABLE_BASIC = 1;
+  IRQ_ENABLE_BASIC = 1;
 }
 
-unsigned int ticks = 0;
-
-static void handle_systimer_interrupts( void )
+/**
+ * @brief Process system timer interrupts, if present.
+ *
+ * @notapi
+ */
+static void systimer_handle_interrupts( void )
 {
-	// Update the system time
-    chSysLockFromIsr();
-    chSysTimerHandlerI();
-    chSysUnlockFromIsr();
+  // Update the system time
+  chSysLockFromIsr();
+  chSysTimerHandlerI();
+  chSysUnlockFromIsr();
 
-	// Clear timer interrupt
-	ARM_TIMER_CLI = 0;
+  // Clear timer interrupt
+  ARM_TIMER_CLI = 0;
 }
 
 /*===========================================================================*/
@@ -87,12 +89,12 @@ static void handle_systimer_interrupts( void )
  */
 CH_IRQ_HANDLER(IrqHandler)
 {
-    CH_IRQ_PROLOGUE();
+  CH_IRQ_PROLOGUE();
 
-	sd_lld_handle_interrupts(&SD1);
-	handle_systimer_interrupts();
+  sd_lld_handle_interrupts(&SD1);
+  systimer_handle_interrupts();
 
-    CH_IRQ_EPILOGUE();
+  CH_IRQ_EPILOGUE();
 }
 
 /*===========================================================================*/
@@ -105,7 +107,7 @@ CH_IRQ_HANDLER(IrqHandler)
  * @notapi
  */
 void hal_lld_init(void) {
-	systimer_init();
+  systimer_init();
 }
 
 /** @} */

@@ -187,7 +187,7 @@ extern "C" {
                              iomode_t mode);
 
   void _pal_lld_writeport(ioportid_t port, 
-  						  ioportmask_t bits);
+  			  ioportmask_t bits);
   						  
 #ifdef _cpluscplus
 }

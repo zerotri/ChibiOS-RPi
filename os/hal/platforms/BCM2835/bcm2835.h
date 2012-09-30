@@ -2,6 +2,9 @@
 #define _BCM2835_H_
 
 #define REG(x) (*(volatile unsigned int *)(x))
+#define BIT(n) (1 << (n))
+
+#define BCM2835_CLOCK_FREQ 250000000
 
 // *****************************************************************************
 //                        General Purpose I/O (GPIO)
@@ -39,6 +42,8 @@
 #define GPIO16_PORT		&gpio_port_1
 #define GPIO16_PAD		16
 
+void gpio_setmode(unsigned int gpio_pin, unsigned int mode);
+
 // *****************************************************************************
 //                          Timer (ARM Side)
 // *****************************************************************************
@@ -52,6 +57,13 @@
 #define ARM_TIMER_RLD REG(0x2000B418)
 #define ARM_TIMER_DIV REG(0x2000B41C)
 #define ARM_TIMER_CNT REG(0x2000B420)
+
+// *****************************************************************************
+//                        System Timer
+// *****************************************************************************
+
+#define SYSTIMER_CS    REG(0x20003000)
+#define SYSTIMER_CLO   REG(0x20003004)
 
 // *****************************************************************************
 //                         AUX Registers
@@ -85,5 +97,48 @@
 #define IRQ_ENABLE_BASIC REG(0x2000B218)
 #define IRQ_DISABLE1     REG(0x2000B21C)
 #define IRQ_DISABLE2     REG(0x2000B220)
+
+// *****************************************************************************
+//                 Broadcom Serial Controllers (I2C)
+// *****************************************************************************
+
+struct bscdevice_t {
+  volatile unsigned int *control;
+  volatile unsigned int *status; 
+  volatile unsigned int *dataLength;
+  volatile unsigned int *slaveAddress;
+  volatile unsigned int *dataFifo;
+  volatile unsigned int *clockDivider;
+  volatile unsigned int *dataDelay;
+  volatile unsigned int *clockStretchTimeout;
+};
+
+typedef struct bscdevice_t bscdevice_t;
+
+/* Only BSC0 is accessible from the RPi pi header.*/
+#define BSC0_ADDR ((bscdevice_t *)0x20205000)
+#define BSC1_ADDR ((bscdevice_t *)0x20804000)
+#define BSC2_ADDR ((bscdevice_t *)0x20805000)
+
+/* I2C control flags */
+#define BSC_I2CEN BIT(15)
+#define BSC_INTR  BIT(10)
+#define BSC_INTT  BIT(9)
+#define BSC_INTD  BIT(8)
+#define BSC_ST    BIT(7)
+#define BSC_CLEAR BIT(4)
+#define BSC_READ  BIT(0)
+
+/* I2C status flags */
+#define BSC_TA   BIT(0) /** @brief Transfer active.*/
+#define BSC_DONE BIT(1) /** @brief Transfer done.*/
+#define BSC_TXW  BIT(2) /** @brief FIFO needs writing.*/
+#define BSC_RXR  BIT(3) /** @brief FIFO needs reading.*/
+#define BSC_TXD  BIT(4) /** @brief FIFO can accept data.*/
+#define BSC_RXD  BIT(5) /** @brief FIFO contains data.*/
+#define BSC_TXE  BIT(6) /** @brief FIFO empty.*/
+#define BSC_RXF  BIT(7) /** @brief FIFO full.*/
+#define BSC_ERR  BIT(8) /** @brief ACK error.*/
+#define BSC_CLKT BIT(9) /** @brief Clock stretch timeout.*/
 
 #endif

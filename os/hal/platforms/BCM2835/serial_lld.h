@@ -102,9 +102,16 @@ extern "C" {
   void sd_lld_stop( SerialDriver *sdp );
 
   bool_t sd_lld_handle_interrupts( SerialDriver *sdp );
+
+  void mini_uart_init ( unsigned int );
+  void mini_uart_send ( unsigned int );
+  unsigned int mini_uart_recv ( void );
+  void mini_uart_sendhex ( unsigned int);
+  void mini_uart_sendhexln ( unsigned int );
 #ifdef __cplusplus
 }
 #endif
+
 
 #endif /* HAL_USE_SERIAL */
 
