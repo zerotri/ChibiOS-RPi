@@ -1,6 +1,9 @@
 #ifndef _BCM2835_H_
 #define _BCM2835_H_
 
+/* Note: Also see https://github.com/dwelch67/raspberrypi for more information about interfacing to
+   BCM2825 peripherals.*/
+
 #define REG(x) (*(volatile unsigned int *)(x))
 #define BIT(n) (1 << (n))
 
@@ -103,14 +106,14 @@ void gpio_setmode(unsigned int gpio_pin, unsigned int mode);
 // *****************************************************************************
 
 struct bscdevice_t {
-  volatile unsigned int *control;
-  volatile unsigned int *status; 
-  volatile unsigned int *dataLength;
-  volatile unsigned int *slaveAddress;
-  volatile unsigned int *dataFifo;
-  volatile unsigned int *clockDivider;
-  volatile unsigned int *dataDelay;
-  volatile unsigned int *clockStretchTimeout;
+  volatile unsigned int control;
+  volatile unsigned int status; 
+  volatile unsigned int dataLength;
+  volatile unsigned int slaveAddress;
+  volatile unsigned int dataFifo;
+  volatile unsigned int clockDivider;
+  volatile unsigned int dataDelay;
+  volatile unsigned int clockStretchTimeout;
 };
 
 typedef struct bscdevice_t bscdevice_t;
@@ -140,5 +143,10 @@ typedef struct bscdevice_t bscdevice_t;
 #define BSC_RXF  BIT(7) /** @brief FIFO full.*/
 #define BSC_ERR  BIT(8) /** @brief ACK error.*/
 #define BSC_CLKT BIT(9) /** @brief Clock stretch timeout.*/
+
+#define CLEAR_STATUS  BSC_CLKT|BSC_ERR|BSC_DONE
+
+#define START_READ    BSC_I2CEN|BSC_ST|BSC_CLEAR|BSC_READ
+#define START_WRITE   BSC_I2CEN|BSC_ST
 
 #endif

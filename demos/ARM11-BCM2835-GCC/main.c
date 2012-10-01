@@ -33,7 +33,7 @@
 static void cmd_mem(BaseSequentialStream *chp, int argc, char *argv[]) {
   size_t n, size;
 
-  (void)argv;
+  UNUSED(argv);
   if (argc > 0) {
     chprintf(chp, "Usage: mem\r\n");
     return;
@@ -48,7 +48,7 @@ static void cmd_threads(BaseSequentialStream *chp, int argc, char *argv[]) {
   static const char *states[] = {THD_STATE_NAMES};
   Thread *tp;
 
-  (void)argv;
+  UNUSED(argv);
   if (argc > 0) {
     chprintf(chp, "Usage: threads\r\n");
     return;
@@ -67,7 +67,7 @@ static void cmd_threads(BaseSequentialStream *chp, int argc, char *argv[]) {
 static void cmd_test(BaseSequentialStream *chp, int argc, char *argv[]) {
   Thread *tp;
 
-  (void)argv;
+  UNUSED(argv);
   if (argc > 0) {
     chprintf(chp, "Usage: test\r\n");
     return;
@@ -83,12 +83,38 @@ static void cmd_test(BaseSequentialStream *chp, int argc, char *argv[]) {
 
 #endif // EXTENDED_SHELL
 
+static void cmd_tmp102(BaseSequentialStream *chp, int argc, char *argv[]) {
+  UNUSED(argv);
+  if (argc > 0) {
+    chprintf(chp, "Usage: tmp102\r\n");
+    return;
+  }
+
+  uint8_t result[] = { 0, 0 };
+
+  i2c_lld_master_receive_timeout(&I2C0, 0x48,
+    result, 2, 
+    (systime_t)1000);
+
+  chprintf(chp, "%0.4x %0.4x\r\n", result[0], result[1]);
+
+  uint32_t ticks = ((result[0] << 8) | result[1]) >> 4;
+#if CHPRINTF_USE_FLOAT
+  float celsius = ticks * 0.0625;
+  float fahrenheit = (celsius * 9)/5 + 32;
+  chprintf(chp, "ticks=%d c=%f, f=%f\r\n", ticks, celsius, fahrenheit);
+#else
+   chprintf(chp, "ticks=%d\r\n", ticks);
+#endif 
+}
+
 static const ShellCommand commands[] = {
 #ifdef EXTENDED_SHELL
   {"mem", cmd_mem},
   {"threads", cmd_threads},
   {"test", cmd_test},
 #endif
+  {"tmp102", cmd_tmp102},
   {NULL, NULL}
 };
 
@@ -123,9 +149,21 @@ int main(void) {
   sdStart(&SD1, NULL); 
   chprintf((BaseSequentialStream *)&SD1, "Main (SD1 started)\r\n");
 
+  /*
+   * Shell initialization.
+   */
   shellInit();
   shellCreate(&shell_config, SHELL_WA_SIZE, NORMALPRIO + 1);
 
+  /*
+   * I2C initialization.
+   */
+  I2CConfig i2cConfig;
+  i2cStart(&I2C0, &i2cConfig);
+
+  /*
+   * Set mode of onboard LED
+   */
   palSetPadMode(GPIO16_PORT, GPIO16_PAD, PAL_MODE_OUTPUT_OPENDRAIN);
 
   /*

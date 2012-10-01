@@ -28,6 +28,7 @@
 
 #include "ch.h"
 #include "hal.h"
+#include "chprintf.h"
 
 #if HAL_USE_I2C || defined(__DOXYGEN__)
 
@@ -41,8 +42,6 @@
 
 I2CDriver I2C0;
 
-I2CConfig i2c_config0;
-
 /*===========================================================================*/
 /* Driver local variables.                                                   */
 /*===========================================================================*/
@@ -51,16 +50,10 @@ I2CConfig i2c_config0;
 /* Driver local functions.                                                   */
 /*===========================================================================*/
 
-static void i2c_callback(I2CDriver *i2cp, i2cstatus_t sts) {
-  UNUSED(i2cp);
-  UNUSED(sts);
-}
-
 static void i2c_init(I2CDriver *i2c_driver, bscdevice_t *device_address) {
-  i2c_driver->config = &i2c_config0;
-  i2c_driver->callback = i2c_callback;
+  i2c_driver->callback = NULL;
   i2c_driver->device = device_address;
-  i2c_driver->state = I2C_STOP;
+  i2cObjectInit(&I2C0);
 }
 
 /*===========================================================================*/
@@ -93,10 +86,8 @@ void i2c_lld_start(I2CDriver *i2cp) {
     /* Set up GPIO pins for I2C */
     gpio_setmode(i2cp->config->ic_pin, GPFN_ALT0);
     gpio_setmode(i2cp->config->ic_pin + 1, GPFN_ALT0);
-    *i2cp->device->control |= (BSC_I2CEN | BSC_CLEAR);
-    i2cp->state = I2C_READY;
+    i2cp->device->control |= BSC_I2CEN;
   }
-  
 }
 
 /**
@@ -111,8 +102,7 @@ void i2c_lld_stop(I2CDriver *i2cp) {
     /* Set GPIO pin function to default */
     gpio_setmode(i2cp->config->ic_pin, GPFN_IN);
     gpio_setmode(i2cp->config->ic_pin + 1, GPFN_IN);
-    *i2cp->device->control &= ~BSC_I2CEN;
-    i2cp->state = I2C_STOP;
+    i2cp->device->control &= ~BSC_I2CEN;
   }
 }
 
@@ -138,23 +128,27 @@ msg_t i2c_lld_master_transmit_timeout(I2CDriver *i2cp, i2caddr_t addr,
                                        systime_t timeout) {
 
   UNUSED(addr);
+ 
+  chprintf((BaseSequentialStream *)&SD1, "i2c state: %d\r\n", i2cp->state);
 
   if (i2cp->state == I2C_READY) {
     size_t i = 0;
     const uint8_t *b = txbuf;
 
-    *i2cp->device->dataLength = txbytes;
-    *i2cp->device->control &= ~BSC_READ;
-    *i2cp->device->slaveAddress = addr;
+    i2cp->device->slaveAddress = addr;
+    i2cp->device->clockStretchTimeout = 100000;
+    i2cp->device->dataLength = txbytes;
 
     while (i++ < txbytes) {
-      while (!(*i2cp->device->status & BSC_TXD));
-      *i2cp->device->dataFifo = *(b++);
+      while (!(i2cp->device->status & BSC_TXD));
+      i2cp->device->dataFifo = *(b++);
     }
 
-    *i2cp->device->control |= (BSC_ST | BSC_CLEAR);
+    i2cp->device->status = CLEAR_STATUS;
+    i2cp->device->control = START_WRITE;
 
-    while (!(*i2cp->device->status & BSC_DONE));
+    while (!(i2cp->device->status & BSC_DONE));
+    i2cp->device->status |= BSC_DONE;
 
     i2c_lld_master_receive_timeout(i2cp, addr, rxbuf, rxbytes, timeout);
   }
@@ -185,19 +179,23 @@ msg_t i2c_lld_master_receive_timeout(I2CDriver *i2cp, i2caddr_t addr,
     size_t i = 0;
     uint8_t *b = rxbuf;
 
-    *i2cp->device->slaveAddress = addr;
-    *i2cp->device->control |= (BSC_ST | BSC_CLEAR | BSC_READ);
+    i2cp->device->slaveAddress = addr;
+    i2cp->device->clockStretchTimeout = 100000;
+    i2cp->device->dataLength = rxbytes;
+
+    i2cp->device->status = CLEAR_STATUS;
+    i2cp->device->control = START_READ;
+    while (!(i2cp->device->status & BSC_DONE));
 
     systime_t max_time = chTimeNow() + timeout;
     while (i++ < rxbytes) {
-      while (!(*i2cp->device->status & BSC_RXD)) {
-        if (chTimeNow() > max_time)
+      while (!(i2cp->device->status & BSC_RXD)) {
+        if (chTimeNow() > max_time) {
           return 0;
+	}
       }
-      *(b++) = *i2cp->device->dataFifo;
+      *(b++) = i2cp->device->dataFifo;
     }
-
-    // Check done flag?
   }
 
   return 0;
