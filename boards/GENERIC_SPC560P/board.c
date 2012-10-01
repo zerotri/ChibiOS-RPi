@@ -23,7 +23,7 @@
 
 #if HAL_USE_PAL || defined(__DOXYGEN__)
 /* Initial setup of all defined pads, the list is terminated by a {0, 0}.*/
-static const spc560p_siul_init_t spc560p_siul_init[] = {
+static const spc560p_siu_init_t spc560p_siu_init[] = {
   {PCR(PD, PD_BUTTON1), PAL_LOW, PAL_MODE_INPUT},
   {PCR(PD, PD_BUTTON2), PAL_LOW, PAL_MODE_INPUT},
   {PCR(PD, PD_BUTTON3), PAL_LOW, PAL_MODE_INPUT},
@@ -36,7 +36,7 @@ static const spc560p_siul_init_t spc560p_siul_init[] = {
 };
 
 /* Initialization array for the PSMI registers.*/
-static const uint8_t spc560p_padsels_init[36] = {
+static const uint8_t spc560p_padsels_init[SPC5_SIU_NUM_PADSELS] = {
   0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
   0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
   0, 0, 0, 0
@@ -48,7 +48,7 @@ static const uint8_t spc560p_padsels_init[36] = {
 const PALConfig pal_default_config =
 {
   PAL_MODE_UNCONNECTED,             /* Default mode for all undefined pads. */
-  spc560p_siul_init,
+  spc560p_siu_init,
   spc560p_padsels_init
 };
 #endif
@@ -68,19 +68,4 @@ void __early_init(void) {
  */
 void boardInit(void) {
 
-#if 0
-  /*
-   * Various initialization (temporary code).
-   */
-  SIU.PCR[GPIO_LED1].R     = 0x0300;                /* OBE | IBE.           */
-  SIU.PCR[GPIO_LED2].R     = 0x0300;                /* OBE | IBE.           */
-  SIU.PCR[GPIO_LED3].R     = 0x0300;                /* OBE | IBE.           */
-  SIU.PCR[GPIO_LED4].R     = 0x0300;                /* OBE | IBE.           */
-  SIU.PCR[GPIO_BUTTON1].R  = 0x0100;                /* IBE.                 */
-  SIU.PCR[GPIO_BUTTON2].R  = 0x0100;                /* IBE.                 */
-  SIU.PCR[GPIO_BUTTON3].R  = 0x0100;                /* IBE.                 */
-  SIU.PCR[GPIO_BUTTON4].R  = 0x0100;                /* IBE.                 */
-  SIU.PCR[GPIO_SCI_A_TX].R = 0x0500;                /* Primary | IBE.       */
-  SIU.PCR[GPIO_SCI_A_RX].R = 0x0500;                /* Primary | IBE.       */
-#endif
 }

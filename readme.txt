@@ -83,6 +83,16 @@
 *****************************************************************************
 
 *** 2.5.1 ***
+- FIX: Fixed misplaced declarations in lwip_bindings sys_arch.c (bug 3571053)
+  (backported to 2.4.3).
+- FIX: Fixed double definition of sd1fel and sd2fel breaks Posix simulator
+  (bug 3570532).
+- FIX: Fixed Ethernet PHY power down scheme prevents using LAN8720A (bug
+  3570335).
+- FIX: Fixed FatFS won't compile with _FS_REENTRANT enabled (bug 3570135)
+  (backported to 2.4.3).
+- FIX: Fixed mmc_spi.c won't compile due to misplaced declaration (bug
+  3570035)(backported to 2.4.3).
 - FIX: Fixed problem in STM32F1xx USB driver after revision 4598 (bug 3569374).
 - FIX: Fixed GPIO glitch during PAL initialization (bug 3569347)(backported
   to 2.4.3).
@@ -93,6 +103,9 @@
   (backported to 2.4.3).
 - FIX: Fixed STM8L, cosmic compiler: c_lreg not saved (bug 3566342)(backported
   to 2.2.10 and 2.4.3).
+- NEW: Updated STM32F1, F2, F4, L1 ADC drivers to allow HW triggering.
+- NEW: Added a new option STM32_ETH1_CHANGE_PHY_STATE to the STM32 MAC driver,
+  this change is connected to bug 3570335.
 - NEW: Modified the CAN drivers to use the new event flags mechanism, the
   previous flags handling has been removed.
 - NEW: Modified serial and serial_usb drivers to use the new event flags
