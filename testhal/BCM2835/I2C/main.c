@@ -37,6 +37,9 @@ static float get_temperature(void) {
   float celsius = ticks * 0.0625;
   float fahrenheit = (celsius * 9)/5 + 32;
 
+  if (status != RDY_OK)
+    chprintf((BaseSequentialStream *)&SD1, "Error while getting voltage: %d", status);
+
   return fahrenheit;
 }
 
@@ -47,9 +50,12 @@ static void set_voltage(float millivolts) {
   uint8_t request[2];
   request[0] = (level >> 8) & 0xff;
   request[1] = level & 0xff;
-  i2c_lld_master_transmit_timeout(
+  msg_t status = i2c_lld_master_transmit_timeout(
     &I2C0, mcp4725_address, request, 2, 
     NULL, 0, MS2ST(1000));
+
+  if (status != RDY_OK)
+    chprintf((BaseSequentialStream *)&SD1, "Error while setting voltage: %d", status);
 }
 
 static WORKING_AREA(waThread1, 128);

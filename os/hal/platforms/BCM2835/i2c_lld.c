@@ -130,27 +130,31 @@ msg_t i2c_lld_master_transmit_timeout(I2CDriver *i2cp, i2caddr_t addr,
     size_t i = 0;
     const uint8_t *b = txbuf;
 
-    i2cp->device->slaveAddress = addr;
-    i2cp->device->clockStretchTimeout = 100000;
-    i2cp->device->dataLength = txbytes;
+    bscdevice_t *device = i2cp->device;
+
+    device->slaveAddress = addr;
+    device->clockStretchTimeout = 100000;
+    device->dataLength = txbytes;
 
     while (i++ < txbytes) {
-      while (!(i2cp->device->status & BSC_TXD));
-      i2cp->device->dataFifo = *(b++);
+      while (!(device->status & BSC_TXD));
+      device->dataFifo = *(b++);
     }
 
-    i2cp->device->status = CLEAR_STATUS; // handle enable bit better
-    i2cp->device->control = START_WRITE;
+    device->status = CLEAR_STATUS; // handle enable bit better
+    device->control = START_WRITE;
 
-    while (!(i2cp->device->status & BSC_DONE));
-    i2cp->device->status |= BSC_DONE;
+    while (!(device->status & BSC_DONE));
+    device->status |= BSC_DONE;
 
-    if (rxbytes > 0) {
-      i2c_lld_master_receive_timeout(i2cp, addr, rxbuf, rxbytes, timeout);
-    }
+    if ((device->status & BSC_CLKT) != 0)
+      return RDY_TIMEOUT;
+
+    if (rxbytes > 0)
+      return i2c_lld_master_receive_timeout(i2cp, addr, rxbuf, rxbytes, timeout);
   }
 
-  return 0;
+  return RDY_OK;
 }
 
 
@@ -177,26 +181,31 @@ msg_t i2c_lld_master_receive_timeout(I2CDriver *i2cp, i2caddr_t addr,
     size_t i = 0;
     uint8_t *b = rxbuf;
 
-    i2cp->device->slaveAddress = addr;
-    i2cp->device->clockStretchTimeout = 100000;
-    i2cp->device->dataLength = rxbytes;
+    bscdevice_t *device = i2cp->device;
 
-    i2cp->device->status = CLEAR_STATUS;
-    i2cp->device->control = START_READ;
-    while (!(i2cp->device->status & BSC_DONE));
+    device->slaveAddress = addr;
+    device->clockStretchTimeout = 100000;
+    device->dataLength = rxbytes;
+
+    device->status = CLEAR_STATUS;
+    device->control = START_READ;
+    while (!(device->status & BSC_DONE));
+
+    if ((device->status & BSC_CLKT) != 0)
+      return RDY_TIMEOUT;
 
     systime_t max_time = chTimeNow() + timeout;
     while (i++ < rxbytes) {
-      while (!(i2cp->device->status & BSC_RXD)) {
+      while (!(device->status & BSC_RXD)) {
         if (chTimeNow() > max_time) {
-          return 0;
+          return RDY_TIMEOUT;
 	}
       }
-      *(b++) = i2cp->device->dataFifo;
+      *(b++) = device->dataFifo;
     }
   }
 
-  return 0;
+  return RDY_OK;
 }
 
 #endif /* HAL_USE_I2C */
