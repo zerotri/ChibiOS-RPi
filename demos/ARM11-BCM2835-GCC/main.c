@@ -83,38 +83,12 @@ static void cmd_test(BaseSequentialStream *chp, int argc, char *argv[]) {
 
 #endif // EXTENDED_SHELL
 
-static void cmd_tmp102(BaseSequentialStream *chp, int argc, char *argv[]) {
-  UNUSED(argv);
-  if (argc > 0) {
-    chprintf(chp, "Usage: tmp102\r\n");
-    return;
-  }
-
-  uint8_t result[] = { 0, 0 };
-
-  i2c_lld_master_receive_timeout(&I2C0, 0x48,
-    result, 2, 
-    (systime_t)1000);
-
-  chprintf(chp, "%0.4x %0.4x\r\n", result[0], result[1]);
-
-  uint32_t ticks = ((result[0] << 8) | result[1]) >> 4;
-#if CHPRINTF_USE_FLOAT
-  float celsius = ticks * 0.0625;
-  float fahrenheit = (celsius * 9)/5 + 32;
-  chprintf(chp, "ticks=%d c=%f, f=%f\r\n", ticks, celsius, fahrenheit);
-#else
-   chprintf(chp, "ticks=%d\r\n", ticks);
-#endif 
-}
-
 static const ShellCommand commands[] = {
 #ifdef EXTENDED_SHELL
   {"mem", cmd_mem},
   {"threads", cmd_threads},
   {"test", cmd_test},
 #endif
-  {"tmp102", cmd_tmp102},
   {NULL, NULL}
 };
 

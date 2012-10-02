@@ -126,11 +126,6 @@ msg_t i2c_lld_master_transmit_timeout(I2CDriver *i2cp, i2caddr_t addr,
                                        const uint8_t *txbuf, size_t txbytes, 
                                        uint8_t *rxbuf, const uint8_t rxbytes, 
                                        systime_t timeout) {
-
-  UNUSED(addr);
- 
-  chprintf((BaseSequentialStream *)&SD1, "i2c state: %d\r\n", i2cp->state);
-
   if (i2cp->state == I2C_READY) {
     size_t i = 0;
     const uint8_t *b = txbuf;
@@ -144,17 +139,20 @@ msg_t i2c_lld_master_transmit_timeout(I2CDriver *i2cp, i2caddr_t addr,
       i2cp->device->dataFifo = *(b++);
     }
 
-    i2cp->device->status = CLEAR_STATUS;
+    i2cp->device->status = CLEAR_STATUS; // handle enable bit better
     i2cp->device->control = START_WRITE;
 
     while (!(i2cp->device->status & BSC_DONE));
     i2cp->device->status |= BSC_DONE;
 
-    i2c_lld_master_receive_timeout(i2cp, addr, rxbuf, rxbytes, timeout);
+    if (rxbytes > 0) {
+      i2c_lld_master_receive_timeout(i2cp, addr, rxbuf, rxbytes, timeout);
+    }
   }
 
   return 0;
 }
+
 
 /**
  * @brief   Master receive.
