@@ -30,15 +30,17 @@ static const float temperature_scaling = 1.07;
 static float get_temperature(void) {
   uint8_t result[] = { 0, 0 };
 
-  i2c_lld_master_receive_timeout(
+  i2cAcquireBus(&I2C0);
+  msg_t status = i2cMasterReceiveTimeout(
     &I2C0, tmp102_address, result, 2, MS2ST(1000));
+  i2cReleaseBus(&I2C0);
 
   uint32_t ticks = ((result[0] << 8) | result[1]) >> 4;
   float celsius = ticks * 0.0625;
   float fahrenheit = (celsius * 9)/5 + 32;
 
   if (status != RDY_OK)
-    chprintf((BaseSequentialStream *)&SD1, "Error while getting voltage: %d", status);
+    chprintf((BaseSequentialStream *)&SD1, "Error while getting voltage: %d\r\n", status);
 
   return fahrenheit;
 }
@@ -50,12 +52,15 @@ static void set_voltage(float millivolts) {
   uint8_t request[2];
   request[0] = (level >> 8) & 0xff;
   request[1] = level & 0xff;
-  msg_t status = i2c_lld_master_transmit_timeout(
+
+  i2cAcquireBus(&I2C0);
+  msg_t status = i2cMasterTransmitTimeout(
     &I2C0, mcp4725_address, request, 2, 
     NULL, 0, MS2ST(1000));
+  i2cReleaseBus(&I2C0);
 
   if (status != RDY_OK)
-    chprintf((BaseSequentialStream *)&SD1, "Error while setting voltage: %d", status);
+    chprintf((BaseSequentialStream *)&SD1, "Error while setting voltage: %d\r\n", status);
 }
 
 static WORKING_AREA(waThread1, 128);
@@ -90,6 +95,7 @@ int main(void) {
    */
   I2CConfig i2cConfig;
   i2cStart(&I2C0, &i2cConfig);
+  chprintf((BaseSequentialStream *)&SD1, "I2C driver state: %d\r\n", I2C0.state);
 
   /*
    * Creates the temperature monitoring thread.

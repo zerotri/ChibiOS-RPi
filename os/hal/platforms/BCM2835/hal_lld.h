@@ -37,6 +37,9 @@
 /* Driver constants.                                                         */
 /*===========================================================================*/
 
+/* Additional status constants, extends those in chshd.h.*/
+#define RDY_BADSTATE -3
+
 /**
  * @brief   Platform name.
  */

@@ -126,14 +126,13 @@ msg_t i2c_lld_master_transmit_timeout(I2CDriver *i2cp, i2caddr_t addr,
                                        const uint8_t *txbuf, size_t txbytes, 
                                        uint8_t *rxbuf, const uint8_t rxbytes, 
                                        systime_t timeout) {
-  if (i2cp->state == I2C_READY) {
+  if (i2cp->state == I2C_ACTIVE_TX) {
     size_t i = 0;
     const uint8_t *b = txbuf;
 
     bscdevice_t *device = i2cp->device;
 
     device->slaveAddress = addr;
-    device->clockStretchTimeout = 100000;
     device->dataLength = txbytes;
 
     while (i++ < txbytes) {
@@ -152,9 +151,11 @@ msg_t i2c_lld_master_transmit_timeout(I2CDriver *i2cp, i2caddr_t addr,
 
     if (rxbytes > 0)
       return i2c_lld_master_receive_timeout(i2cp, addr, rxbuf, rxbytes, timeout);
+
+    return RDY_OK;
   }
 
-  return RDY_OK;
+  return RDY_BADSTATE;
 }
 
 
@@ -177,7 +178,7 @@ msg_t i2c_lld_master_receive_timeout(I2CDriver *i2cp, i2caddr_t addr,
                                        systime_t timeout) {
   UNUSED(addr);
 
-  if (i2cp->state == I2C_READY) {
+  if (i2cp->state == I2C_ACTIVE_RX) {
     size_t i = 0;
     uint8_t *b = rxbuf;
 
@@ -203,9 +204,11 @@ msg_t i2c_lld_master_receive_timeout(I2CDriver *i2cp, i2caddr_t addr,
       }
       *(b++) = device->dataFifo;
     }
+
+    return RDY_OK;
   }
 
-  return RDY_OK;
+  return RDY_BADSTATE;
 }
 
 #endif /* HAL_USE_I2C */
