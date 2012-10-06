@@ -19,30 +19,21 @@
 */
 
 /**
- * @file    templates/serial_lld.h
- * @brief   Serial Driver subsystem low level driver header template.
+ * @file    templates/spi_lld.h
+ * @brief   SPI Driver subsystem low level driver header template.
  *
- * @addtogroup SERIAL
+ * @addtogroup SPI
  * @{
  */
 
-#ifndef _SERIAL_LLD_H_
-#define _SERIAL_LLD_H_
+#ifndef _SPI_LLD_H_
+#define _SPI_LLD_H_
 
-#if HAL_USE_SERIAL || defined(__DOXYGEN__)
+#if HAL_USE_SPI || defined(__DOXYGEN__)
 
 /*===========================================================================*/
 /* Driver constants.                                                         */
 /*===========================================================================*/
-
-/**
- * @brief   Serial buffers size.
- * @details Configuration parameter, you can change the depth of the queue
- *          buffers depending on the requirements of your application.
- */
-#if !defined(SERIAL_BUFFERS_SIZE) || defined(__DOXYGEN__)
-#define SERIAL_BUFFERS_SIZE         1024
-#endif
 
 /*===========================================================================*/
 /* Driver pre-compile time settings.                                         */
@@ -57,32 +48,86 @@
 /*===========================================================================*/
 
 /**
- * @brief   Generic Serial Driver configuration structure.
- * @details An instance of this structure must be passed to @p sdStart()
- *          in order to configure and start a serial driver operations.
+ * @brief   Type of a structure representing an SPI driver.
+ */
+typedef struct SPIDriver SPIDriver;
+
+/**
+ * @brief   SPI notification callback type.
+ *
+ * @param[in] spip      pointer to the @p SPIDriver object triggering the
+ *                      callback
+ */
+typedef void (*spicallback_t)(SPIDriver *spip);
+
+/**
+ * @brief   Driver configuration structure.
  * @note    Implementations may extend this structure to contain more,
  *          architecture dependent, fields.
  */
 typedef struct {
+  /**
+   * @brief Operation complete callback.
+   */
+  spicallback_t         end_cb;
+  /* End of the mandatory fields.*/
 
-} SerialConfig;
+  /* @brief 00=Chip select 0, 01=Chip select 1 */
+  uint8_t               chip_select;
+
+} SPIConfig;
 
 /**
- * @brief @p SerialDriver specific data.
+ * @brief   Structure representing an SPI driver.
+ * @note    Implementations may extend this structure to contain more,
+ *          architecture dependent, fields.
  */
-#define _serial_driver_data                                                 \
-  _base_asynchronous_channel_data                                           \
-  /* Driver state.*/                                                        \
-  sdstate_t                 state;                                          \
-  /* Input queue.*/                                                         \
-  InputQueue                iqueue;                                         \
-  /* Output queue.*/                                                        \
-  OutputQueue               oqueue;                                         \
-  /* Input circular buffer.*/                                               \
-  uint8_t                   ib[SERIAL_BUFFERS_SIZE];                        \
-  /* Output circular buffer.*/                                              \
-  uint8_t                   ob[SERIAL_BUFFERS_SIZE];                        \
+struct SPIDriver {
+  /**
+   * @brief Driver state.
+   */
+  spistate_t            state;
+  /**
+   * @brief Current configuration data.
+   */
+  const SPIConfig       *config;
+#if SPI_USE_WAIT || defined(__DOXYGEN__)
+  /**
+   * @brief Waiting thread.
+   */
+  Thread                *thread;
+#endif /* SPI_USE_WAIT */
+#if SPI_USE_MUTUAL_EXCLUSION || defined(__DOXYGEN__)
+#if CH_USE_MUTEXES || defined(__DOXYGEN__)
+  /**
+   * @brief Mutex protecting the bus.
+   */
+  Mutex                 mutex;
+#elif CH_USE_SEMAPHORES
+  Semaphore             semaphore;
+#endif
+
+  /**
+   * @brief Receive buffer
+   */
+  uint8_t               *rxbuf;
+
+  /**
+   * @brief Transmit buffer
+   */
+  const uint8_t         *txbuf;
+
+  /**
+   * @brief Pending transfer count
+   */
+  size_t              txcnt;
+
+#endif /* SPI_USE_MUTUAL_EXCLUSION */
+#if defined(SPI_DRIVER_EXT_FIELDS)
+  SPI_DRIVER_EXT_FIELDS
+#endif
   /* End of the mandatory fields.*/
+};
 
 /*===========================================================================*/
 /* Driver macros.                                                            */
@@ -92,29 +137,30 @@ typedef struct {
 /* External declarations.                                                    */
 /*===========================================================================*/
 
-extern SerialDriver SD1;
-
 #ifdef __cplusplus
 extern "C" {
 #endif
-  void sd_lld_init( void );
-  void sd_lld_start( SerialDriver *sdp, const SerialConfig *config );
-  void sd_lld_stop( SerialDriver *sdp );
+  extern SPIDriver SPI0;
 
-  bool_t sd_lld_serve_interrupt( SerialDriver *sdp );
+  void spi_lld_init(void);
+  void spi_lld_start(SPIDriver *spip);
+  void spi_lld_stop(SPIDriver *spip);
+  void spi_lld_select(SPIDriver *spip);
+  void spi_lld_unselect(SPIDriver *spip);
+  void spi_lld_ignore(SPIDriver *spip, size_t n);
+  void spi_lld_exchange(SPIDriver *spip, size_t n,
+                        const void *txbuf, void *rxbuf);
+  void spi_lld_send(SPIDriver *spip, size_t n, const void *txbuf);
+  void spi_lld_receive(SPIDriver *spip, size_t n, void *rxbuf);
+  uint16_t spi_lld_polled_exchange(SPIDriver *spip, uint8_t frame);
 
-  void mini_uart_init ( unsigned int );
-  void mini_uart_send ( unsigned int );
-  unsigned int mini_uart_recv ( void );
-  void mini_uart_sendhex ( unsigned int);
-  void mini_uart_sendhexln ( unsigned int );
+  void spi_lld_serve_interrupt(SPIDriver *spip);
 #ifdef __cplusplus
 }
 #endif
 
+#endif /* HAL_USE_SPI */
 
-#endif /* HAL_USE_SERIAL */
-
-#endif /* _SERIAL_LLD_H_ */
+#endif /* _SPI_LLD_H_ */
 
 /** @} */

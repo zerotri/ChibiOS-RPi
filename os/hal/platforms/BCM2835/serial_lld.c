@@ -89,17 +89,17 @@ static void delay(unsigned int n)
 /* Driver interrupt handlers.                                                */
 /*===========================================================================*/
 
-bool_t sd_lld_handle_interrupts( SerialDriver *sdp ) {
-    if (mini_uart_rx_interrupt_pending()) {
-		chSysLockFromIsr();
-		do {			
-			sdIncomingDataI(sdp, AUX_MU_IO_REG & 0xFF);
-		} while (mini_uart_rx_interrupt_pending());
-		chSysUnlockFromIsr();
-		return TRUE;
-	}
+bool_t sd_lld_serve_interrupt( SerialDriver *sdp ) {
+  if (mini_uart_rx_interrupt_pending()) {
+    chSysLockFromIsr();
+    do {			
+      sdIncomingDataI(sdp, AUX_MU_IO_REG & 0xFF);
+    } while (mini_uart_rx_interrupt_pending());
+    chSysUnlockFromIsr();
+    return TRUE;
+  }
 	
-    return FALSE;
+  return FALSE;
 }
 
 /*===========================================================================*/

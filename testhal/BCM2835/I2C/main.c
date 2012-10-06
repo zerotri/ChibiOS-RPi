@@ -31,8 +31,10 @@ static float get_temperature(void) {
   uint8_t result[] = { 0, 0 };
 
   i2cAcquireBus(&I2C0);
+
   msg_t status = i2cMasterReceiveTimeout(
     &I2C0, tmp102_address, result, 2, MS2ST(1000));
+
   i2cReleaseBus(&I2C0);
 
   uint32_t ticks = ((result[0] << 8) | result[1]) >> 4;
@@ -54,9 +56,11 @@ static void set_voltage(float millivolts) {
   request[1] = level & 0xff;
 
   i2cAcquireBus(&I2C0);
+
   msg_t status = i2cMasterTransmitTimeout(
     &I2C0, mcp4725_address, request, 2, 
     NULL, 0, MS2ST(1000));
+
   i2cReleaseBus(&I2C0);
 
   if (status != RDY_OK)
@@ -70,7 +74,7 @@ static msg_t Thread1(void *p) {
   chRegSetThreadName("TMP102 Monitor");
   while (TRUE) {
     float temperature = get_temperature();
-    chprintf((BaseSequentialStream *)&SD1, "Temperature: %f\r\n", temperature);
+    chprintf((BaseSequentialStream *)&SD1, "Temperature: %f F\r\n", temperature);
     set_voltage(temperature);
     chThdSleepMilliseconds(1000);
   }
@@ -95,7 +99,6 @@ int main(void) {
    */
   I2CConfig i2cConfig;
   i2cStart(&I2C0, &i2cConfig);
-  chprintf((BaseSequentialStream *)&SD1, "I2C driver state: %d\r\n", I2C0.state);
 
   /*
    * Creates the temperature monitoring thread.

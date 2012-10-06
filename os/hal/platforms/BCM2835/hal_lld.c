@@ -60,7 +60,7 @@ static void systimer_init( void )
   ARM_TIMER_CLI = 0;
   ARM_TIMER_CTL = 0x003E00A2;
 
-  IRQ_ENABLE_BASIC = 1;
+  IRQ_ENABLE_BASIC |= 1;
 }
 
 /**
@@ -68,7 +68,7 @@ static void systimer_init( void )
  *
  * @notapi
  */
-static void systimer_handle_interrupts( void )
+static void systimer_serve_interrupt( void )
 {
   // Update the system time
   chSysLockFromIsr();
@@ -91,8 +91,19 @@ CH_IRQ_HANDLER(IrqHandler)
 {
   CH_IRQ_PROLOGUE();
 
-  sd_lld_handle_interrupts(&SD1);
-  systimer_handle_interrupts();
+  systimer_serve_interrupt();
+
+#if HAL_USE_SERIAL
+  sd_lld_serve_interrupt(&SD1);
+#endif
+
+#if HAL_USE_I2C
+  i2c_lld_serve_interrupt(&I2C0);
+#endif
+
+#if HAL_USE_SPI
+  spi_lld_serve_interrupt(&SPI0);
+#endif
 
   CH_IRQ_EPILOGUE();
 }

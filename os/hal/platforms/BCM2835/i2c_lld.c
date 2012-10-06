@@ -28,7 +28,6 @@
 
 #include "ch.h"
 #include "hal.h"
-#include "chprintf.h"
 
 #if HAL_USE_I2C || defined(__DOXYGEN__)
 
@@ -56,9 +55,77 @@ static void i2c_init(I2CDriver *i2c_driver, bscdevice_t *device_address) {
   i2cObjectInit(&I2C0);
 }
 
+/**
+ * @brief   Wakes up the waiting thread.
+ *
+ * @param[in] i2cp      pointer to the @p I2CDriver object
+ * @param[in] msg       wakeup message
+ *
+ * @notapi
+ */
+#define wakeup_isr(i2cp, msg) {                                             \
+  chSysLockFromIsr();                                                       \
+  if ((i2cp)->thread != NULL) {                                             \
+    Thread *tp = (i2cp)->thread;                                            \
+    (i2cp)->thread = NULL;                                                  \
+    tp->p_u.rdymsg = (msg);                                                 \
+    chSchReadyI(tp);                                                        \
+  }                                                                         \
+  chSysUnlockFromIsr();                                                     \
+}
+
+/**
+ * @brief   Handling of stalled I2C transactions.
+ *
+ * @param[in] i2cp      pointer to the @p I2CDriver object
+ *
+ * @notapi
+ */
+static void i2c_lld_safety_timeout(void *p) {
+  I2CDriver *i2cp = (I2CDriver *)p;
+  chSysLockFromIsr();
+  if (i2cp->thread) {
+    bscdevice_t *device = i2cp->device;
+    device->control = 0;
+    device->status = BSC_CLKT | BSC_ERR | BSC_DONE;
+
+    Thread *tp = i2cp->thread;
+    i2cp->thread = NULL;
+    tp->p_u.rdymsg = RDY_TIMEOUT;
+    chSchReadyI(tp);
+  }
+  chSysUnlockFromIsr();
+}
+
 /*===========================================================================*/
 /* Driver interrupt handlers.                                                */
 /*===========================================================================*/
+
+void i2c_lld_serve_interrupt(I2CDriver *i2cp) {
+  UNUSED(i2cp);
+  bscdevice_t *device = i2cp->device;
+  uint32_t status = device->status;
+
+  if (status & (BSC_CLKT | BSC_ERR)) {
+    // TODO set error flags
+    wakeup_isr(i2cp, RDY_RESET);
+  }
+  else if (status & BSC_DONE) {
+    while ((status & BSC_RXD) && (i2cp->rxidx < i2cp->rxbytes))
+      i2cp->rxbuf[i2cp->rxidx++] = device->dataFifo;
+    device->control = 0;
+    device->status = BSC_CLKT | BSC_ERR | BSC_DONE;
+    wakeup_isr(i2cp, RDY_OK);
+  }
+  else if (status & BSC_TXW) {
+    while ((i2cp->txidx < i2cp->txbytes) && (status & BSC_TXD))
+      device->dataFifo = i2cp->txbuf[i2cp->txidx++];
+  }
+  else if (status & BSC_RXR) {
+    while ((i2cp->rxidx < i2cp->rxbytes) && (status & BSC_RXD))
+      i2cp->rxbuf[i2cp->rxidx++] = device->dataFifo;
+  }
+}
 
 /*===========================================================================*/
 /* Driver exported functions.                                                */
@@ -81,13 +148,11 @@ void i2c_lld_init(void) {
  * @notapi
  */
 void i2c_lld_start(I2CDriver *i2cp) {
-  if (i2cp->state == I2C_STOP) {
-    /* Configuration */
-    /* Set up GPIO pins for I2C */
-    gpio_setmode(i2cp->config->ic_pin, GPFN_ALT0);
-    gpio_setmode(i2cp->config->ic_pin + 1, GPFN_ALT0);
-    i2cp->device->control |= BSC_I2CEN;
-  }
+  /* Configuration */
+  /* Set up GPIO pins for I2C */
+  gpio_setmode(i2cp->config->ic_pin, GPFN_ALT0);
+  gpio_setmode(i2cp->config->ic_pin + 1, GPFN_ALT0);
+  i2cp->device->control |= BSC_I2CEN;
 }
 
 /**
@@ -98,12 +163,10 @@ void i2c_lld_start(I2CDriver *i2cp) {
  * @notapi
  */
 void i2c_lld_stop(I2CDriver *i2cp) {
-  if (i2cp->state == I2C_READY) {
-    /* Set GPIO pin function to default */
-    gpio_setmode(i2cp->config->ic_pin, GPFN_IN);
-    gpio_setmode(i2cp->config->ic_pin + 1, GPFN_IN);
-    i2cp->device->control &= ~BSC_I2CEN;
-  }
+  /* Set GPIO pin function to default */
+  gpio_setmode(i2cp->config->ic_pin, GPFN_IN);
+  gpio_setmode(i2cp->config->ic_pin + 1, GPFN_IN);
+  i2cp->device->control &= ~BSC_I2CEN;
 }
 
 /**
@@ -126,36 +189,39 @@ msg_t i2c_lld_master_transmit_timeout(I2CDriver *i2cp, i2caddr_t addr,
                                        const uint8_t *txbuf, size_t txbytes, 
                                        uint8_t *rxbuf, const uint8_t rxbytes, 
                                        systime_t timeout) {
-  if (i2cp->state == I2C_ACTIVE_TX) {
-    size_t i = 0;
-    const uint8_t *b = txbuf;
+  VirtualTimer vt;
 
-    bscdevice_t *device = i2cp->device;
+  /* Global timeout for the whole operation.*/
+  if (timeout != TIME_INFINITE)
+    chVTSetI(&vt, timeout, i2c_lld_safety_timeout, (void *)i2cp);
 
-    device->slaveAddress = addr;
-    device->dataLength = txbytes;
+  i2cp->addr = addr;
+  i2cp->txbuf = txbuf;
+  i2cp->txbytes = txbytes;
+  i2cp->txidx = 0;
+  i2cp->rxbuf = rxbuf;
+  i2cp->rxbytes = rxbytes;
+  i2cp->rxidx = 0;
 
-    while (i++ < txbytes) {
-      while (!(device->status & BSC_TXD));
-      device->dataFifo = *(b++);
-    }
+  bscdevice_t *device = i2cp->device;
+  device->slaveAddress = addr;
+  device->dataLength = txbytes;
+  device->status = CLEAR_STATUS;
 
-    device->status = CLEAR_STATUS; // handle enable bit better
-    device->control = START_WRITE;
+  /* Enable Interrupts and start transfer.*/
+  device->control |= (BSC_INTT | BSC_INTD | START_WRITE);
 
-    while (!(device->status & BSC_DONE));
-    device->status |= BSC_DONE;
+  // needed? there is an outer lock already
+  chSysLock();
 
-    if ((device->status & BSC_CLKT) != 0)
-      return RDY_TIMEOUT;
+  i2cp->thread = chThdSelf();
+  chSchGoSleepS(THD_STATE_SUSPENDED);
+  if ((timeout != TIME_INFINITE) && chVTIsArmedI(&vt))
+    chVTResetI(&vt);
 
-    if (rxbytes > 0)
-      return i2c_lld_master_receive_timeout(i2cp, addr, rxbuf, rxbytes, timeout);
+  chSysUnlock();
 
-    return RDY_OK;
-  }
-
-  return RDY_BADSTATE;
+  return chThdSelf()->p_u.rdymsg;
 }
 
 
@@ -174,41 +240,40 @@ msg_t i2c_lld_master_transmit_timeout(I2CDriver *i2cp, i2caddr_t addr,
  * @notapi
  */
 msg_t i2c_lld_master_receive_timeout(I2CDriver *i2cp, i2caddr_t addr, 
-                                       uint8_t *rxbuf, size_t rxbytes, 
-                                       systime_t timeout) {
-  UNUSED(addr);
+				     uint8_t *rxbuf, size_t rxbytes, 
+				     systime_t timeout) {
+  VirtualTimer vt;
 
-  if (i2cp->state == I2C_ACTIVE_RX) {
-    size_t i = 0;
-    uint8_t *b = rxbuf;
+  /* Global timeout for the whole operation.*/
+  if (timeout != TIME_INFINITE)
+    chVTSetI(&vt, timeout, i2c_lld_safety_timeout, (void *)i2cp);
 
-    bscdevice_t *device = i2cp->device;
+  i2cp->addr = addr;
+  i2cp->txbuf = NULL;
+  i2cp->txbytes = 0;
+  i2cp->txidx = 0;
+  i2cp->rxbuf = rxbuf;
+  i2cp->rxbytes = rxbytes;
+  i2cp->rxidx = 0;
 
-    device->slaveAddress = addr;
-    device->clockStretchTimeout = 100000;
-    device->dataLength = rxbytes;
+  /* Setup device.*/
+  bscdevice_t *device = i2cp->device;
+  device->slaveAddress = addr;
+  device->dataLength = rxbytes;
+  device->status = CLEAR_STATUS;
 
-    device->status = CLEAR_STATUS;
-    device->control = START_READ;
-    while (!(device->status & BSC_DONE));
+  /* Enable Interrupts and start transfer.*/
+  device->control = (BSC_INTR | BSC_INTD | START_READ);
 
-    if ((device->status & BSC_CLKT) != 0)
-      return RDY_TIMEOUT;
+  // needed? there is an outer lock already
+  chSysLock();
+  i2cp->thread = chThdSelf();
+  chSchGoSleepS(THD_STATE_SUSPENDED);
+  if ((timeout != TIME_INFINITE) && chVTIsArmedI(&vt))
+    chVTResetI(&vt);
+  chSysUnlock();
 
-    systime_t max_time = chTimeNow() + timeout;
-    while (i++ < rxbytes) {
-      while (!(device->status & BSC_RXD)) {
-        if (chTimeNow() > max_time) {
-          return RDY_TIMEOUT;
-	}
-      }
-      *(b++) = device->dataFifo;
-    }
-
-    return RDY_OK;
-  }
-
-  return RDY_BADSTATE;
+  return chThdSelf()->p_u.rdymsg;
 }
 
 #endif /* HAL_USE_I2C */

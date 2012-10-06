@@ -117,6 +117,38 @@ struct I2CDriver {
   I2C_DRIVER_EXT_FIELDS
 #endif
   /* End of the mandatory fields.*/
+  /**
+   * @brief   Thread waiting for I/O completion.
+   */
+  Thread                    *thread;
+  /**
+   * @brief   Address of slave device.
+   */
+  i2caddr_t                 addr;
+  /**
+   * @brief   Pointer to the buffer with data to send.
+   */
+  const uint8_t             *txbuf;
+  /**
+   * @brief   Number of bytes of data to send.
+   */
+  size_t                    txbytes;
+  /**
+   * @brief   Current index in buffer when sending data.
+   */
+  size_t                    txidx;
+  /**
+   * @brief   Pointer to the buffer to put received data.
+   */
+  uint8_t                   *rxbuf;
+  /**
+   * @brief   Number of bytes of data to receive.
+   */
+  size_t                    rxbytes;
+  /**
+   * @brief   Current index in buffer when receiving data.
+   */
+  size_t                    rxidx;
 };
 
 /*===========================================================================*/
@@ -152,6 +184,8 @@ extern "C" {
   msg_t i2c_lld_master_receive_timeout(I2CDriver *i2cp, i2caddr_t addr, 
                                        uint8_t *rxbuf, size_t rxbytes, 
                                        systime_t timeout);
+
+  void i2c_lld_serve_interrupt(I2CDriver *i2cp);
 
 #ifdef __cplusplus
 }

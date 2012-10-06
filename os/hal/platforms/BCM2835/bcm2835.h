@@ -102,7 +102,7 @@ void gpio_setmode(unsigned int gpio_pin, unsigned int mode);
 #define IRQ_DISABLE2     REG(0x2000B220)
 
 // *****************************************************************************
-//                 Broadcom Serial Controllers (I2C)
+//                 Broadcom Serial Controllers (BSC/I2C)
 // *****************************************************************************
 
 struct bscdevice_t {
@@ -148,5 +148,45 @@ typedef struct bscdevice_t bscdevice_t;
 
 #define START_READ    BSC_I2CEN|BSC_ST|BSC_CLEAR|BSC_READ
 #define START_WRITE   BSC_I2CEN|BSC_ST
+
+// *****************************************************************************
+//                 Broadcom Serial Controllers (BSC/SPI)
+// *****************************************************************************
+
+/// See 10.5 SPI Register Map
+#define SPI0_CS        REG(0x20204000) /* @brief SPI Master Control and Status.*/
+#define SPI0_FIFO      REG(0x20204004) /* @brief SPI Master TX and RX FIFOs.*/
+#define SPI0_CLK       REG(0x20204008) /* @brief SPI Master Clock Divider.*/
+#define SPI0_DLEN      REG(0x2020400C) /* @brief SPI Master Data Length.*/
+#define SPI0_LTOH      REG(0x20204010) /* @brief SPI LOSSI mode TOH.*/
+#define SPI0_DC        REG(0x20204014) /* @brief SPI DMA DREQ Controls.*/
+
+// Register masks for SPI0_CS
+#define SPI_CS_LEN_LONG             0x02000000 /* @brief Enable Long data word in Lossi mode if DMA_LEN is set.*/
+#define SPI_CS_DMA_LEN              0x01000000 /* @brief Enable DMA mode in Lossi mode.*/
+#define SPI_CS_CSPOL2               0x00800000 /* @brief Chip Select 2 Polarity.*/
+#define SPI_CS_CSPOL1               0x00400000 /* @brief Chip Select 1 Polarity.*/
+#define SPI_CS_CSPOL0               0x00200000 /* @brief Chip Select 0 Polarity.*/
+#define SPI_CS_RXF                  0x00100000 /* @brief RXF - RX FIFO Full.*/
+#define SPI_CS_RXR                  0x00080000 /* @brief RXR RX FIFO needs Reading ( full).*/
+#define SPI_CS_TXD                  0x00040000 /* @brief TXD TX FIFO can accept Data.*/
+#define SPI_CS_RXD                  0x00020000 /* @brief RXD RX FIFO contains Data.*/
+#define SPI_CS_DONE                 0x00010000 /* @brief Done transfer Done.*/
+#define SPI_CS_TE_EN                0x00008000 /* @brief Unused.*/
+#define SPI_CS_LMONO                0x00004000 /* @brief Unused.*/
+#define SPI_CS_LEN                  0x00002000 /* @brief LEN LoSSI enable.*/
+#define SPI_CS_REN                  0x00001000 /* @brief REN Read Enable.*/
+#define SPI_CS_ADCS                 0x00000800 /* @brief ADCS Automatically Deassert Chip Select.*/
+#define SPI_CS_INTR                 0x00000400 /* @brief INTR Interrupt on RXR.*/
+#define SPI_CS_INTD                 0x00000200 /* @brief INTD Interrupt on Done.*/
+#define SPI_CS_DMAEN                0x00000100 /* @brief DMAEN DMA Enable.*/
+#define SPI_CS_TA                   0x00000080 /* @brief Transfer Active.*/
+#define SPI_CS_CSPOL                0x00000040 /* @brief Chip Select Polarity.*/
+#define SPI_CS_CLEAR                0x00000030 /* @brief Clear FIFO Clear RX and TX.*/
+#define SPI_CS_CLEAR_RX             0x00000020 /* @brief Clear FIFO Clear RX .*/
+#define SPI_CS_CLEAR_TX             0x00000010 /* @brief Clear FIFO Clear TX .*/
+#define SPI_CS_CPOL                 0x00000008 /* @brief Clock Polarity.*/
+#define SPI_CS_CPHA                 0x00000004 /* @brief Clock Phase.*/
+#define SPI_CS_CS                   0x00000003 /* @brief Chip Select.*/
 
 #endif
