@@ -64,7 +64,8 @@
  *          architecture dependent, fields.
  */
 typedef struct {
-
+  /** @brief Baud rate for the Mini UART */
+  uint32_t                 baud_rate;
 } SerialConfig;
 
 /**
@@ -87,6 +88,8 @@ typedef struct {
 /*===========================================================================*/
 /* Driver macros.                                                            */
 /*===========================================================================*/
+
+#define BAUD_RATE_COUNT(baudrate) ((BCM2835_CLOCK_FREQ / (8 * (baudrate))) - 1)
 
 /*===========================================================================*/
 /* External declarations.                                                    */

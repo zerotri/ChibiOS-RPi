@@ -49,6 +49,7 @@ SerialDriver SD1;
  * @brief   Driver default configuration.
  */
 static const SerialConfig default_config = {
+  115200 /* default baud rate */
 };
 
 /*===========================================================================*/
@@ -56,21 +57,16 @@ static const SerialConfig default_config = {
 /*===========================================================================*/
 
 static void output_notify(GenericQueue *qp) {
-    UNUSED(qp);
+  UNUSED(qp);
 
-	while (1) {
-    	chSysLockFromIsr();
-    	int ch = sdRequestDataI(&SD1);
-    	chSysUnlockFromIsr();
-    	if (ch == Q_EMPTY) break;
-    	mini_uart_send((unsigned int)ch);
-    }
+  while (1) {
+    chSysLockFromIsr();
+    int ch = sdRequestDataI(&SD1);
+    chSysUnlockFromIsr();
+    if (ch == Q_EMPTY) break;
+    mini_uart_send((unsigned int)ch);
+  }
 }
-
-static unsigned int mini_uart_baudrate(unsigned int baudrate) {
-	return (BCM2835_CLOCK_FREQ / (8 * baudrate)) - 1;
-}
-
 
 static unsigned int mini_uart_rx_interrupt_pending( void )
 {
@@ -81,8 +77,8 @@ static unsigned int mini_uart_rx_interrupt_pending( void )
 
 static void delay(unsigned int n)
 {
-	volatile unsigned int i = 0;
-	for(i = 0; i < n; i++);
+  volatile unsigned int i = 0;
+  for(i = 0; i < n; i++);
 }
 
 /*===========================================================================*/
@@ -113,12 +109,6 @@ bool_t sd_lld_serve_interrupt( SerialDriver *sdp ) {
  */
 void sd_lld_init(void) {
   sdObjectInit(&SD1, NULL, output_notify);
-
-  IRQ_DISABLE1 |= 1<<29;
-
-  mini_uart_init(115200);
-
-  IRQ_ENABLE1 |= 1<<29;
 }
 
 /**
@@ -132,11 +122,13 @@ void sd_lld_init(void) {
  * @notapi
  */
 void sd_lld_start(SerialDriver *sdp, const SerialConfig *config) {
+  UNUSED(sdp);
 
-  (void)sdp;
   if (config == NULL)
     config = &default_config;
 
+  mini_uart_init(config->baud_rate);
+  IRQ_ENABLE1 |= BIT(29);
 }
 
 /**
@@ -149,12 +141,18 @@ void sd_lld_start(SerialDriver *sdp, const SerialConfig *config) {
  * @notapi
  */
 void sd_lld_stop(SerialDriver *sdp) {
-  (void)sdp;
+  UNUSED(sdp);
+
+  IRQ_ENABLE1 &= ~BIT(29);
+  bcm2835_gpio_fnsel(14, GPFN_IN);
+  bcm2835_gpio_fnsel(15, GPFN_IN);
 }
 
 void mini_uart_init ( unsigned int baud )
-{	
-    AUX_ENABLES = 1;
+{
+  IRQ_DISABLE1 |= 1<<29;
+	
+  AUX_ENABLES = 1;
   
   AUX_MU_IER_REG 	= 0x00;
   AUX_MU_CNTL_REG = 0x00;
@@ -163,11 +161,10 @@ void mini_uart_init ( unsigned int baud )
   AUX_MU_IER_REG 	= 0x05;
   AUX_MU_IIR_REG	= 0xC6; 
 
-  // TODO make baud rate configurable
-  AUX_MU_BAUD_REG = mini_uart_baudrate(baud);
+  AUX_MU_BAUD_REG = BAUD_RATE_COUNT(baud);
   
-  gpio_setmode(14, GPFN_ALT5);
-  gpio_setmode(15, GPFN_ALT5);
+  bcm2835_gpio_fnsel(14, GPFN_ALT5);
+  bcm2835_gpio_fnsel(15, GPFN_ALT5);
   
   GPPUD = 0;
   delay(150);

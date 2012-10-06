@@ -79,7 +79,7 @@ void _pal_lld_setgroupmode(ioportid_t port, ioportmask_t mask, uint32_t mode) {
     for (i = 0; i < 32; i++) {
       unsigned int bit = mask & 1;
       if (bit) 
-        gpio_setmode(i + port->pin_base, GPFN_IN);
+        bcm2835_gpio_fnsel(i + port->pin_base, GPFN_IN);
       mask >>= 1;
     }
     break;
@@ -88,7 +88,7 @@ void _pal_lld_setgroupmode(ioportid_t port, ioportmask_t mask, uint32_t mode) {
     for (i = 0; i < 32; i++) {
       unsigned int bit = mask & 1;
       if (bit) 
-        gpio_setmode(i + port->pin_base, GPFN_OUT);
+        bcm2835_gpio_fnsel(i + port->pin_base, GPFN_OUT);
       mask >>= 1;
     }
     break;

@@ -1,6 +1,7 @@
 #ifndef _BCM2835_H_
 #define _BCM2835_H_
 
+
 /* Note: Also see https://github.com/dwelch67/raspberrypi for more information about interfacing to
    BCM2825 peripherals.*/
 
@@ -155,7 +156,7 @@
 #define LED_PORT        GPIO16_PORT
 #define LED_PAD         GPIO16_PAD
 
-void gpio_setmode(unsigned int gpio_pin, unsigned int mode);
+void bcm2835_gpio_fnsel(unsigned int gpio_pin, unsigned int gpio_function);
 
 // *****************************************************************************
 //                          Timer (ARM Side)
