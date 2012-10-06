@@ -104,13 +104,12 @@ extern "C" {
   void sd_lld_start( SerialDriver *sdp, const SerialConfig *config );
   void sd_lld_stop( SerialDriver *sdp );
 
-  bool_t sd_lld_serve_interrupt( SerialDriver *sdp );
+  void sd_lld_serve_interrupt( SerialDriver *sdp );
 
-  void mini_uart_init ( unsigned int );
-  void mini_uart_send ( unsigned int );
-  unsigned int mini_uart_recv ( void );
-  void mini_uart_sendhex ( unsigned int);
-  void mini_uart_sendhexln ( unsigned int );
+  void mini_uart_send ( uint32_t );
+  uint32_t mini_uart_recv ( void );
+  void mini_uart_sendhex ( uint32_t);
+  void mini_uart_sendhexln ( uint32_t );
 #ifdef __cplusplus
 }
 #endif

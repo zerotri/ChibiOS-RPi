@@ -198,6 +198,14 @@ void bcm2835_gpio_fnsel(unsigned int gpio_pin, unsigned int gpio_function);
 #define AUX_MU_STAT_REG REG(0x20215064)
 #define AUX_MU_BAUD_REG REG(0x20215068)
 
+#define AUX_MU_IER_TX_IRQEN  BIT(1)
+
+#define AUX_MU_IIR_RX_IRQ     ((AUX_MU_IIR_REG & 0x07) == 0x04)
+#define AUX_MU_IIR_TX_IRQ     ((AUX_MU_IIR_REG & 0x07) == 0x02)
+
+#define AUX_MU_LSR_RX_RDY     (AUX_MU_LSR_REG & BIT(0))
+#define AUX_MU_LSR_TX_RDY     (AUX_MU_LSR_REG & BIT(5))
+
 // *****************************************************************************
 //                        Interrupts
 // *****************************************************************************

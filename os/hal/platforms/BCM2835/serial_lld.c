@@ -57,27 +57,14 @@ static const SerialConfig default_config = {
 /*===========================================================================*/
 
 static void output_notify(GenericQueue *qp) {
-  UNUSED(qp);
-
-  while (1) {
-    chSysLockFromIsr();
-    int ch = sdRequestDataI(&SD1);
-    chSysUnlockFromIsr();
-    if (ch == Q_EMPTY) break;
-    mini_uart_send((unsigned int)ch);
-  }
+  UNUSED(qp);  
+  /* Enable tx interrupts.*/
+  AUX_MU_IER_REG |= AUX_MU_IER_TX_IRQEN; 
 }
 
-static unsigned int mini_uart_rx_interrupt_pending( void )
+static void delay(uint32_t n)
 {
-  unsigned int iir = AUX_MU_IIR_REG;
-  if((iir & 1)==1) return 0;
-  return  (iir & 6) == 4;
-}
-
-static void delay(unsigned int n)
-{
-  volatile unsigned int i = 0;
+  volatile uint32_t i = 0;
   for(i = 0; i < n; i++);
 }
 
@@ -85,17 +72,27 @@ static void delay(unsigned int n)
 /* Driver interrupt handlers.                                                */
 /*===========================================================================*/
 
-bool_t sd_lld_serve_interrupt( SerialDriver *sdp ) {
-  if (mini_uart_rx_interrupt_pending()) {
+void sd_lld_serve_interrupt( SerialDriver *sdp ) {
+  if (AUX_MU_IIR_RX_IRQ) {
     chSysLockFromIsr();
     do {			
       sdIncomingDataI(sdp, AUX_MU_IO_REG & 0xFF);
-    } while (mini_uart_rx_interrupt_pending());
+    } while (AUX_MU_LSR_RX_RDY);
     chSysUnlockFromIsr();
-    return TRUE;
   }
-	
-  return FALSE;
+
+  if (AUX_MU_IIR_TX_IRQ) {
+    chSysLockFromIsr();
+    msg_t data = sdRequestDataI(&SD1);
+    if (data < Q_OK) {
+      /* Disable tx interrupts.*/
+      AUX_MU_IER_REG &= ~AUX_MU_IER_TX_IRQEN; 
+    }
+    else {
+      mini_uart_send((uint32_t)data);
+    }
+    chSysUnlockFromIsr();
+  }
 }
 
 /*===========================================================================*/
@@ -127,7 +124,30 @@ void sd_lld_start(SerialDriver *sdp, const SerialConfig *config) {
   if (config == NULL)
     config = &default_config;
 
-  mini_uart_init(config->baud_rate);
+  IRQ_DISABLE1 |= BIT(29);
+	
+  AUX_ENABLES = 1;
+  
+  AUX_MU_IER_REG  = 0x00;
+  AUX_MU_CNTL_REG = 0x00;
+  AUX_MU_LCR_REG  = 0x03; // Bit 1 must be set
+  AUX_MU_MCR_REG  = 0x00;
+  AUX_MU_IER_REG  = 0x05;
+  AUX_MU_IIR_REG  = 0xC6; 
+
+  AUX_MU_BAUD_REG = BAUD_RATE_COUNT(config->baud_rate);
+  
+  bcm2835_gpio_fnsel(14, GPFN_ALT5);
+  bcm2835_gpio_fnsel(15, GPFN_ALT5);
+  
+  GPPUD = 0;
+  delay(150);
+  GPPUDCLK0 = (1<<14)|(1<<15);
+  delay(150);
+  GPPUDCLK0 = 0;
+  
+  AUX_MU_CNTL_REG = 0x03;
+
   IRQ_ENABLE1 |= BIT(29);
 }
 
@@ -143,54 +163,27 @@ void sd_lld_start(SerialDriver *sdp, const SerialConfig *config) {
 void sd_lld_stop(SerialDriver *sdp) {
   UNUSED(sdp);
 
-  IRQ_ENABLE1 &= ~BIT(29);
+  IRQ_DISABLE1 |= BIT(29);
   bcm2835_gpio_fnsel(14, GPFN_IN);
   bcm2835_gpio_fnsel(15, GPFN_IN);
 }
 
-void mini_uart_init ( unsigned int baud )
-{
-  IRQ_DISABLE1 |= 1<<29;
-	
-  AUX_ENABLES = 1;
-  
-  AUX_MU_IER_REG 	= 0x00;
-  AUX_MU_CNTL_REG = 0x00;
-  AUX_MU_LCR_REG 	= 0x03;
-  AUX_MU_MCR_REG	= 0x00;
-  AUX_MU_IER_REG 	= 0x05;
-  AUX_MU_IIR_REG	= 0xC6; 
-
-  AUX_MU_BAUD_REG = BAUD_RATE_COUNT(baud);
-  
-  bcm2835_gpio_fnsel(14, GPFN_ALT5);
-  bcm2835_gpio_fnsel(15, GPFN_ALT5);
-  
-  GPPUD = 0;
-  delay(150);
-  GPPUDCLK0 = (1<<14)|(1<<15);
-  delay(150);
-  GPPUDCLK0 = 0;
-  
-  AUX_MU_CNTL_REG = 0x03;
-}
-
-unsigned int mini_uart_recv ( void )
+uint32_t mini_uart_recv ( void )
 {
   while((AUX_MU_LSR_REG & 0x01) == 0);
   return(AUX_MU_IO_REG & 0xFF);
 }
 
-void mini_uart_send ( unsigned int c )
+void mini_uart_send ( uint32_t c )
 {
   while((AUX_MU_LSR_REG & 0x20) == 0);
   AUX_MU_IO_REG = c;
 }
 
-void mini_uart_sendhex ( unsigned int d )
+void mini_uart_sendhex ( uint32_t d )
 {
-  unsigned int rb;
-  unsigned int rc;
+  uint32_t rb;
+  uint32_t rc;
 
   rb=32;
   while(1)
@@ -207,7 +200,7 @@ void mini_uart_sendhex ( unsigned int d )
   mini_uart_send(0x20);
 }
 
-void mini_uart_sendhxln ( unsigned int d )
+void mini_uart_sendhxln ( uint32_t d )
 {
   mini_uart_sendhex(d);
   mini_uart_send(0x0D);

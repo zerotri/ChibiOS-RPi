@@ -120,11 +120,11 @@ void spi_lld_start(SPIDriver *spip) {
 
   IRQ_DISABLE2 |= BIT(22);
 
-  gpio_setmode(7, GPFN_ALT0);   /* SPI0_CE1_N.*/
-  gpio_setmode(8, GPFN_ALT0);   /* SPI0_CE0_N.*/
-  gpio_setmode(9, GPFN_ALT0);   /* SPI0_MOSI.*/
-  gpio_setmode(10, GPFN_ALT0);  /* SPI0_MISO.*/
-  gpio_setmode(11, GPFN_ALT0);  /* SPIO_SCLK.*/
+  bcm2835_gpio_fnsel(7, GPFN_ALT0);   /* SPI0_CE1_N.*/
+  bcm2835_gpio_fnsel(8, GPFN_ALT0);   /* SPI0_CE0_N.*/
+  bcm2835_gpio_fnsel(9, GPFN_ALT0);   /* SPI0_MOSI.*/
+  bcm2835_gpio_fnsel(10, GPFN_ALT0);  /* SPI0_MISO.*/
+  bcm2835_gpio_fnsel(11, GPFN_ALT0);  /* SPIO_SCLK.*/
   SPI0_CS = SPI_CS_CLEAR_TX | SPI_CS_CLEAR_RX;
 
   IRQ_ENABLE2 |= BIT(22);
@@ -142,11 +142,11 @@ void spi_lld_stop(SPIDriver *spip) {
 
   IRQ_DISABLE2 |= BIT(22);
 
-  gpio_setmode(7, GPFN_IN);   /* SPI0_CE1_N.*/
-  gpio_setmode(8, GPFN_IN);   /* SPI0_CE0_N.*/
-  gpio_setmode(9, GPFN_IN);   /* SPI0_MOSI.*/
-  gpio_setmode(10, GPFN_IN);  /* SPI0_MISO.*/
-  gpio_setmode(11, GPFN_IN);  /* SPIO_SCLK.*/
+  bcm2835_gpio_fnsel(7, GPFN_IN);
+  bcm2835_gpio_fnsel(8, GPFN_IN);
+  bcm2835_gpio_fnsel(9, GPFN_IN);
+  bcm2835_gpio_fnsel(10, GPFN_IN);
+  bcm2835_gpio_fnsel(11, GPFN_IN);
 }
 
 /**
