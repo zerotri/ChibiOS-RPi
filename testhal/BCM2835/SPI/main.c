@@ -45,13 +45,13 @@ int main(void) {
 
   spiSelect(&SPI0);
   
-  uint8_t txbuf[] = { 0x80, 0x00, 0x00 };
-  uint8_t rxbuf[] = { 0x00, 0x00, 0x00 };
+  uint8_t txbuf[] = { 0x80, 0x00 };
+  uint8_t rxbuf[] = { 0x00, 0x00 };
 
   for (;;) {
     spiExchange(&SPI0, 3, txbuf, rxbuf);
     chprintf((BaseSequentialStream *)&SD1, "%c[2J%c[H%-5d %.2x %.2x", 
-	     0x1b, 0x1b,  (rxbuf[1] << 8) | rxbuf[2], rxbuf[1], rxbuf[2]);
+	     0x1b, 0x1b,  ((rxbuf[0] & 0x03) << 8) | rxbuf[1], rxbuf[0] & 0x03, rxbuf[1]);
     chThdSleepMilliseconds(100);
   }
 
