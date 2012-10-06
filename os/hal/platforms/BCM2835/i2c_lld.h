@@ -88,8 +88,6 @@ typedef struct {
   /** @brief I2C bus bit rate.*/
   uint32_t                  ic_speed;
   /* End of the mandatory fields.*/
-  /** @brief Pin assigned to SDA. Defaults to 0.*/
-  uint32_t                  ic_pin;
 } I2CConfig;
 
 /**
@@ -102,8 +100,6 @@ struct I2CDriver {
   i2cstate_t                state;
   /** @brief Current configuration data.*/
   const I2CConfig           *config;
-  /** @brief Current callback.*/
-  i2ccallback_t             callback;
   /** @brief Error flags.*/
   i2cflags_t                errors;
   /** @brief BSC device registers.*/

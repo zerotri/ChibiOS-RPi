@@ -49,12 +49,6 @@ I2CDriver I2C0;
 /* Driver local functions.                                                   */
 /*===========================================================================*/
 
-static void i2c_init(I2CDriver *i2c_driver, bscdevice_t *device_address) {
-  i2c_driver->callback = NULL;
-  i2c_driver->device = device_address;
-  i2cObjectInit(&I2C0);
-}
-
 /**
  * @brief   Wakes up the waiting thread.
  *
@@ -86,6 +80,13 @@ static void i2c_lld_safety_timeout(void *p) {
   chSysLockFromIsr();
   if (i2cp->thread) {
     bscdevice_t *device = i2cp->device;
+
+    i2cp->errors |= I2CD_TIMEOUT;
+    if (device->status & BSC_CLKT)
+      i2cp->errors |= I2CD_BUS_ERROR;
+    if (device->status & BSC_ERR)
+      i2cp->errors |= I2CD_ACK_FAILURE;
+
     device->control = 0;
     device->status = BSC_CLKT | BSC_ERR | BSC_DONE;
 
@@ -137,7 +138,8 @@ void i2c_lld_serve_interrupt(I2CDriver *i2cp) {
  * @notapi
  */
 void i2c_lld_init(void) {
-  i2c_init(&I2C0, BSC0_ADDR);
+  I2C0.device = BSC0_ADDR;
+  i2cObjectInit(&I2C0);
 }
 
 /**
@@ -148,10 +150,14 @@ void i2c_lld_init(void) {
  * @notapi
  */
 void i2c_lld_start(I2CDriver *i2cp) {
-  /* Configuration */
   /* Set up GPIO pins for I2C */
-  gpio_setmode(i2cp->config->ic_pin, GPFN_ALT0);
-  gpio_setmode(i2cp->config->ic_pin + 1, GPFN_ALT0);
+  gpio_setmode(GPIO0_PAD, GPFN_ALT0);
+  gpio_setmode(GPIO1_PAD, GPFN_ALT0);
+
+  uint32_t speed = i2cp->config->ic_speed;
+  if (speed != 0 && speed != 100000)
+    i2cp->device->clockDivider = BSC_CLOCK_FREQ / i2cp->config->ic_speed;
+
   i2cp->device->control |= BSC_I2CEN;
 }
 
@@ -164,8 +170,9 @@ void i2c_lld_start(I2CDriver *i2cp) {
  */
 void i2c_lld_stop(I2CDriver *i2cp) {
   /* Set GPIO pin function to default */
-  gpio_setmode(i2cp->config->ic_pin, GPFN_IN);
-  gpio_setmode(i2cp->config->ic_pin + 1, GPFN_IN);
+  gpio_setmode(GPIO0_PAD, GPFN_IN);
+  gpio_setmode(GPIO1_PAD, GPFN_IN);
+
   i2cp->device->control &= ~BSC_I2CEN;
 }
 
@@ -211,7 +218,7 @@ msg_t i2c_lld_master_transmit_timeout(I2CDriver *i2cp, i2caddr_t addr,
   /* Enable Interrupts and start transfer.*/
   device->control |= (BSC_INTT | BSC_INTD | START_WRITE);
 
-  // needed? there is an outer lock already
+  /* Is this really needed? there is an outer lock already */
   chSysLock();
 
   i2cp->thread = chThdSelf();
@@ -221,7 +228,17 @@ msg_t i2c_lld_master_transmit_timeout(I2CDriver *i2cp, i2caddr_t addr,
 
   chSysUnlock();
 
-  return chThdSelf()->p_u.rdymsg;
+  msg_t status = chThdSelf()->p_u.rdymsg;
+
+  if (status == RDY_OK && rxbytes > 0) {
+    /* The TIMEOUT_INFINITE prevents receive from setting up it's own timer.*/
+    status = i2c_lld_master_receive_timeout(i2cp, addr, rxbuf, 
+					    rxbytes, TIME_INFINITE);
+    if ((timeout != TIME_INFINITE) && chVTIsArmedI(&vt))
+      chVTResetI(&vt);
+  }
+
+  return status;
 }
 
 

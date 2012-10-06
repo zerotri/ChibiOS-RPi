@@ -102,9 +102,9 @@ static msg_t Thread1(void *p) {
   (void)p;
   chRegSetThreadName("blinker");
   while (TRUE) {
-    palClearPad(GPIO16_PORT, GPIO16_PAD);
+    palClearPad(LED_PORT, LED_PAD);
     chThdSleepMilliseconds(100);
-    palSetPad(GPIO16_PORT, GPIO16_PAD);
+    palSetPad(LED_PORT, LED_PAD);
     chThdSleepMilliseconds(900);
   }
   return 0;
@@ -151,5 +151,4 @@ int main(void) {
   chThdWait(chThdSelf());
 
   return 0;
-
 }

@@ -39,8 +39,8 @@
 /* Driver exported variables.                                                */
 /*===========================================================================*/
 
-gpio_port_t gpio_port_1;
-gpio_port_t gpio_port_2;
+gpio_port_t IOPORT0;
+gpio_port_t IOPORT1;
 
 /*===========================================================================*/
 /* Driver local variables.                                                   */
@@ -49,8 +49,6 @@ gpio_port_t gpio_port_2;
 /*===========================================================================*/
 /* Driver local functions.                                                   */
 /*===========================================================================*/
-
-// TODO Read Port
 
 /*===========================================================================*/
 /* Driver interrupt handlers.                                                */
@@ -64,14 +62,14 @@ void _pal_lld_init(const PALConfig* config) {
 
   (void)config;
 	
-  gpio_port_1.gpset = &GPSET0;
-  gpio_port_1.gpclr = &GPCLR0;
-  gpio_port_1.gplev = &GPLEV0;
+  IOPORT0.gpset = &GPSET0;
+  IOPORT0.gpclr = &GPCLR0;
+  IOPORT0.gplev = &GPLEV0;
 
-  gpio_port_2.gpset = &GPSET1;
-  gpio_port_2.gpclr = &GPCLR1;
-  gpio_port_2.gplev = &GPLEV1;
-  gpio_port_2.pin_base = 32;
+  IOPORT1.gpset = &GPSET1;
+  IOPORT1.gpclr = &GPCLR1;
+  IOPORT1.gplev = &GPLEV1;
+  IOPORT1.pin_base = 32;
 }
 
 void _pal_lld_setgroupmode(ioportid_t port, ioportmask_t mask, uint32_t mode) {

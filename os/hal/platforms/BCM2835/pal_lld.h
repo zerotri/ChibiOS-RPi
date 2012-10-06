@@ -106,16 +106,13 @@ typedef gpio_port_t *ioportid_t;
  * @details Low level drivers can define multiple ports, it is suggested to
  *          use this naming convention.
  */
-#define IOPORT0			0
-#define IOPORT1         1
+extern gpio_port_t IOPORT0;
+extern gpio_port_t IOPORT1;
 
 /*===========================================================================*/
 /* Implementation, some of the following macros could be implemented as      */
 /* functions, if so please put them in pal_lld.c.                            */
 /*===========================================================================*/
-
-extern gpio_port_t gpio_port_1;
-extern gpio_port_t gpio_port_2;
 
 extern const PALConfig pal_default_config;
 

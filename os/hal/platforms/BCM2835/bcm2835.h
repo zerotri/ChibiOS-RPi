@@ -41,9 +41,119 @@
 #define GPFN_ALT4  	0x03
 #define GPFN_ALT5  	0x02
 
+#define GPIO0_PAD       0
+#define GPIO1_PAD       1
+#define GPIO2_PAD       2
+#define GPIO3_PAD       3
+#define GPIO4_PAD       4
+#define GPIO5_PAD       5
+#define GPIO6_PAD       6
+#define GPIO7_PAD       7
+#define GPIO8_PAD       8
+#define GPIO9_PAD       9
+#define GPIO10_PAD      10
+#define GPIO11_PAD      11
+#define GPIO12_PAD      12
+#define GPIO13_PAD      13
+#define GPIO14_PAD      14
+#define GPIO15_PAD      15
+#define GPIO16_PAD      16
+#define GPIO17_PAD      17
+#define GPIO18_PAD      18
+#define GPIO19_PAD      19
+#define GPIO20_PAD      20
+#define GPIO21_PAD      21
+#define GPIO22_PAD      22
+#define GPIO23_PAD      23
+#define GPIO24_PAD      24
+#define GPIO25_PAD      25
+#define GPIO26_PAD      26
+#define GPIO27_PAD      27
+#define GPIO28_PAD      28
+#define GPIO29_PAD      29
+#define GPIO30_PAD      30
+#define GPIO31_PAD      31
+#define GPIO32_PAD      0
+#define GPIO33_PAD      1
+#define GPIO34_PAD      2
+#define GPIO35_PAD      3
+#define GPIO36_PAD      4
+#define GPIO37_PAD      5
+#define GPIO38_PAD      6
+#define GPIO39_PAD      7
+#define GPIO40_PAD      8
+#define GPIO41_PAD      9
+#define GPIO42_PAD      10
+#define GPIO43_PAD      11
+#define GPIO44_PAD      12
+#define GPIO45_PAD      13
+#define GPIO46_PAD      14
+#define GPIO47_PAD      15
+#define GPIO48_PAD      16
+#define GPIO49_PAD      17
+#define GPIO50_PAD      18
+#define GPIO51_PAD      19
+#define GPIO52_PAD      20
+#define GPIO53_PAD      21
+
+#define GPIO0_PORT      &IOPORT0
+#define GPIO1_PORT      &IOPORT0
+#define GPIO2_PORT      &IOPORT0
+#define GPIO3_PORT      &IOPORT0
+#define GPIO4_PORT      &IOPORT0
+#define GPIO5_PORT      &IOPORT0
+#define GPIO6_PORT      &IOPORT0
+#define GPIO7_PORT      &IOPORT0
+#define GPIO8_PORT      &IOPORT0
+#define GPIO9_PORT      &IOPORT0
+#define GPIO10_PORT     &IOPORT0
+#define GPIO11_PORT     &IOPORT0
+#define GPIO12_PORT     &IOPORT0
+#define GPIO13_PORT     &IOPORT0
+#define GPIO14_PORT     &IOPORT0
+#define GPIO15_PORT     &IOPORT0
+#define GPIO16_PORT     &IOPORT0
+#define GPIO17_PORT     &IOPORT0
+#define GPIO18_PORT     &IOPORT0
+#define GPIO19_PORT     &IOPORT0
+#define GPIO20_PORT     &IOPORT0
+#define GPIO21_PORT     &IOPORT0
+#define GPIO22_PORT     &IOPORT0
+#define GPIO23_PORT     &IOPORT0
+#define GPIO24_PORT     &IOPORT0
+#define GPIO25_PORT     &IOPORT0
+#define GPIO26_PORT     &IOPORT0
+#define GPIO27_PORT     &IOPORT0
+#define GPIO28_PORT     &IOPORT0
+#define GPIO29_PORT     &IOPORT0
+#define GPIO30_PORT     &IOPORT0
+#define GPIO31_PORT     &IOPORT0
+#define GPIO32_PORT     &IOPORT1
+#define GPIO33_PORT     &IOPORT1
+#define GPIO34_PORT     &IOPORT1
+#define GPIO35_PORT     &IOPORT1
+#define GPIO36_PORT     &IOPORT1
+#define GPIO37_PORT     &IOPORT1
+#define GPIO38_PORT     &IOPORT1
+#define GPIO39_PORT     &IOPORT1
+#define GPIO40_PORT     &IOPORT1
+#define GPIO41_PORT     &IOPORT1
+#define GPIO42_PORT     &IOPORT1
+#define GPIO43_PORT     &IOPORT1
+#define GPIO44_PORT     &IOPORT1
+#define GPIO45_PORT     &IOPORT1
+#define GPIO46_PORT     &IOPORT1
+#define GPIO47_PORT     &IOPORT1
+#define GPIO48_PORT     &IOPORT1
+#define GPIO49_PORT     &IOPORT1
+#define GPIO50_PORT     &IOPORT1
+#define GPIO51_PORT     &IOPORT1
+#define GPIO52_PORT     &IOPORT1
+#define GPIO53_PORT     &IOPORT1
+
 // ----- GPIO - Onboard LED -------
-#define GPIO16_PORT		&gpio_port_1
-#define GPIO16_PAD		16
+#define LED_PORT        GPIO16_PORT
+#define LED_PAD         GPIO16_PAD
 
 void gpio_setmode(unsigned int gpio_pin, unsigned int mode);
 
@@ -123,6 +233,8 @@ typedef struct bscdevice_t bscdevice_t;
 #define BSC1_ADDR ((bscdevice_t *)0x20804000)
 #define BSC2_ADDR ((bscdevice_t *)0x20805000)
 
+#define BSC_CLOCK_FREQ 150000000
+
 /* I2C control flags */
 #define BSC_I2CEN BIT(15)
 #define BSC_INTR  BIT(10)
@@ -144,13 +256,20 @@ typedef struct bscdevice_t bscdevice_t;
 #define BSC_ERR  BIT(8) /** @brief ACK error.*/
 #define BSC_CLKT BIT(9) /** @brief Clock stretch timeout.*/
 
+/* Rising/Falling Edge Delay Defaults.*/
+#define BSC_DEFAULT_FEDL       0x30
+#define BSC_DEFAULT_REDL       0x30
+
+/* Clock Stretch Timeout Defaults.*/
+#define BSC_DEFAULT_CLKT       0x40
+
 #define CLEAR_STATUS  BSC_CLKT|BSC_ERR|BSC_DONE
 
 #define START_READ    BSC_I2CEN|BSC_ST|BSC_CLEAR|BSC_READ
 #define START_WRITE   BSC_I2CEN|BSC_ST
 
 // *****************************************************************************
-//                 Broadcom Serial Controllers (BSC/SPI)
+//                  Serial Peripheral Interface (SPI)
 // *****************************************************************************
 
 /// See 10.5 SPI Register Map
