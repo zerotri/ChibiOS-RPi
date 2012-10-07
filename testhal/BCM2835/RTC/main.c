@@ -46,22 +46,6 @@ int main(void) {
 	     rtc_month(time), rtc_day(time), rtc_year(time),
 	     rtc_hour(time), rtc_minute(time), rtc_second(time));
 
-#if 0
-    uint8_t response[] = { 0, 0, 0, 0, 0, 0, 0 };
-
-    i2cAcquireBus(&I2C0);
-
-    uint8_t reg = 0;
-
-    i2cMasterTransmit(&I2C0, 0x68, &reg, 1, NULL, 0);
-    i2cMasterReceiveTimeout(&I2C0, 0x68, response, 7, MS2ST(1000));
-
-    chprintf((BaseSequentialStream *)&SD1, "data: %.2x %.2x %.2x %.2x %.2x %.2x %.2x\r\n",
-	     response[0], response[1], response[2], response[3], response[4], response[5], response[6]);
-    
-    i2cReleaseBus(&I2C0);
-#endif
-
     chThdSleepMilliseconds(1000);
   }
 
