@@ -4,12 +4,11 @@
 
 ** TARGET **
 
-The SPI demo runs on an Raspberry Pi RevB board.
+The RTC demo runs on an Raspberry Pi RevB board.
 
 ** The Demo **
 
-This demo reads values from a MCP3008 ADC using SPI.
-
+This demo uses a DS1307 RTC to provide a real-time clock for the Pi
 ** Build Procedure **
 
 This was built with the Yagarto GCC toolchain.

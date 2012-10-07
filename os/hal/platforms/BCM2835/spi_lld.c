@@ -125,6 +125,22 @@ void spi_lld_start(SPIDriver *spip) {
   bcm2835_gpio_fnsel(9, GPFN_ALT0);   /* SPI0_MOSI.*/
   bcm2835_gpio_fnsel(10, GPFN_ALT0);  /* SPI0_MISO.*/
   bcm2835_gpio_fnsel(11, GPFN_ALT0);  /* SPIO_SCLK.*/
+
+  if (spip->config->clock_polarity)
+    SPI0_CS |= SPI_CS_CPOL;
+
+  if (spip->config->clock_phase)
+    SPI0_CS |= SPI_CS_CPHA;
+
+  if (spip->config->chip_select_polarity)
+    SPI0_CS |= SPI_CS_CSPOL;
+
+  if (spip->config->chip_select_polarity0)
+    SPI0_CS |= SPI_CS_CSPOL0;
+
+  if (spip->config->chip_select_polarity1)
+    SPI0_CS |= SPI_CS_CSPOL1;
+
   SPI0_CS = SPI_CS_CLEAR_TX | SPI_CS_CLEAR_RX;
 
   IRQ_ENABLE2 |= BIT(22);
