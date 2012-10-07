@@ -1,11 +1,12 @@
 #ifndef _BCM2835_H_
 #define _BCM2835_H_
 
+#include "chtypes.h"
 
 /* Note: Also see https://github.com/dwelch67/raspberrypi for more information about interfacing to
    BCM2825 peripherals.*/
 
-#define REG(x) (*(volatile unsigned int *)(x))
+#define REG(x) (*(volatile uint32_t *)(x))
 #define BIT(n) (1 << (n))
 
 #define BCM2835_CLOCK_FREQ 250000000
@@ -156,7 +157,7 @@
 #define LED_PORT        GPIO16_PORT
 #define LED_PAD         GPIO16_PAD
 
-void bcm2835_gpio_fnsel(unsigned int gpio_pin, unsigned int gpio_function);
+void bcm2835_gpio_fnsel(uint32_t gpio_pin, uint32_t gpio_function);
 
 // *****************************************************************************
 //                          Timer (ARM Side)
@@ -176,8 +177,26 @@ void bcm2835_gpio_fnsel(unsigned int gpio_pin, unsigned int gpio_function);
 //                        System Timer
 // *****************************************************************************
 
-#define SYSTIMER_CS    REG(0x20003000)
-#define SYSTIMER_CLO   REG(0x20003004)
+#define SYSTIMER_CS         REG(0x20003000)
+#define SYSTIMER_CLO        REG(0x20003004)
+#define SYSTIMER_CHI        REG(0x20003008)
+
+#define SYSTIMER_CMP0       REG(0x2000300C)
+#define SYSTIMER_CMP1       REG(0x20003010)
+#define SYSTIMER_CMP2       REG(0x20003014)
+#define SYSTIMER_CMP3       REG(0x20003018)
+
+#define SYSTIMER_CS_MATCH0  0x01
+#define SYSTIMER_CS_MATCH1  0x02
+#define SYSTIMER_CS_MATCH2  0x04
+#define SYSTIMER_CS_MATCH3  0x08
+
+#define SYSTIMER_IRQEN0     0x01
+#define SYSTIMER_IRQEN1     0x02
+#define SYSTIMER_IRQEN2     0x04
+#define SYSTIMER_IRQEN3     0x08
+
+#define SYSTIMER_CLOCK_FREQ 1000000
 
 // *****************************************************************************
 //                         AUX Registers
@@ -210,15 +229,16 @@ void bcm2835_gpio_fnsel(unsigned int gpio_pin, unsigned int gpio_function);
 //                        Interrupts
 // *****************************************************************************
 
-#define IRQ_BASIC        REG(0x2000B200)
-#define IRQ_PEND1        REG(0x2000B204)
-#define IRQ_PEND2        REG(0x2000B208)
-#define IRQ_FIQ_CONTROL  REG(0x2000B210)
-#define IRQ_ENABLE1      REG(0x2000B210)
-#define IRQ_ENABLE2      REG(0x2000B214)
-#define IRQ_ENABLE_BASIC REG(0x2000B218)
-#define IRQ_DISABLE1     REG(0x2000B21C)
-#define IRQ_DISABLE2     REG(0x2000B220)
+#define IRQ_BASIC         REG(0x2000B200)
+#define IRQ_PEND1         REG(0x2000B204)
+#define IRQ_PEND2         REG(0x2000B208)
+#define IRQ_FIQ_CONTROL   REG(0x2000B210)
+#define IRQ_ENABLE1       REG(0x2000B210)
+#define IRQ_ENABLE2       REG(0x2000B214)
+#define IRQ_ENABLE_BASIC  REG(0x2000B218)
+#define IRQ_DISABLE1      REG(0x2000B21C)
+#define IRQ_DISABLE2      REG(0x2000B220)
+#define IRQ_DISABLE_BASIC REG(0x2000B220)
 
 // *****************************************************************************
 //                 Broadcom Serial Controllers (BSC/I2C)

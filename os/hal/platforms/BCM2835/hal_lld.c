@@ -105,6 +105,10 @@ CH_IRQ_HANDLER(IrqHandler)
   spi_lld_serve_interrupt(&SPI0);
 #endif
 
+#if HAL_USE_GPT
+  gpt_lld_serve_interrupt();
+#endif
+
   CH_IRQ_EPILOGUE();
 }
 

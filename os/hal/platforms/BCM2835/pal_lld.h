@@ -46,9 +46,9 @@ typedef struct {
    */
   uint32_t          latch;
 
-  volatile unsigned int *gpset;
-  volatile unsigned int *gpclr;
-  volatile unsigned int *gplev;
+  volatile uint32_t *gpset;
+  volatile uint32_t *gpclr;
+  volatile uint32_t *gplev;
   
   unsigned int pin_base;
   

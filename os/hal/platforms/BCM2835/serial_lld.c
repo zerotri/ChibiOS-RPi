@@ -200,7 +200,7 @@ void mini_uart_sendhex ( uint32_t d )
   mini_uart_send(0x20);
 }
 
-void mini_uart_sendhxln ( uint32_t d )
+void mini_uart_sendhexln ( uint32_t d )
 {
   mini_uart_sendhex(d);
   mini_uart_send(0x0D);
