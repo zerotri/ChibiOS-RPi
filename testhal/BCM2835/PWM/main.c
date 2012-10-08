@@ -33,13 +33,24 @@ int main(void) {
    * Serial port initialization.
    */
   sdStart(&SD1, NULL); 
-  chprintf((BaseSequentialStream *)&SD1, "BCM2835 I2C Demonstration\r\n");
+  chprintf((BaseSequentialStream *)&SD1, "BCM2835 PWM Demonstration\r\n");
+
+  palSetPadMode(GPIO18_PORT, GPIO18_PAD, PAL_MODE_OUTPUT_OPENDRAIN);
+  int i;
+  for(i = 0; i < 10; i++) {
+    palTogglePad(GPIO18_PORT, GPIO18_PAD);
+    chThdSleepMilliseconds(250);
+  }
+  palClearPad(GPIO18_PORT, GPIO18_PAD);
 
   /*
    * Serial General Purpose Timer (GPT) #1 initialization.
    */
   PWMConfig pwmConfig;
   pwmStart(&PWMD1, &pwmConfig);
+
+  PWMD1.period = 1023;
+  pwmEnableChannel(&PWMD1, 0, 1023);
 
   chThdWait(chThdSelf());
 

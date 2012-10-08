@@ -33,7 +33,7 @@ int main(void) {
    * Serial port initialization.
    */
   sdStart(&SD1, NULL); 
-  chprintf((BaseSequentialStream *)&SD1, "BCM2835 I2C Demonstration\r\n");
+  chprintf((BaseSequentialStream *)&SD1, "BCM2835 RTC Demonstration\r\n");
 
   //uint8_t request[] = { 0x00, 0x30, 0x20, 0x08, 0x06, 0x06, 0x10, 0x12 };
   //i2cMasterTransmit(&I2C0, 0x68, request, 7, NULL, 0);

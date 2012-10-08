@@ -63,7 +63,8 @@ PWMDriver PWMD1;
  * @notapi
  */
 void pwm_lld_init(void) {
-
+  PWMD1.period = 1023;
+  pwmObjectInit(&PWMD1);
 }
 
 /**
@@ -132,19 +133,19 @@ void pwm_lld_enable_channel(PWMDriver *pwmp,
   PWM_CTL = 0 ;	
 
   /* Set PWM pin function.*/
-  bcm2835_gpio_fnsel(19, GPFN_ALT5);
+  bcm2835_gpio_fnsel(18, GPFN_ALT5);
 
-  /* Set source to oscillator.*/
+  /* Disable clock generator (reset bit 4).*/
   GPIO0_CLK_CTL = GPIO_CLK_PWD | 0x01 ;	
   delayMicroseconds (110) ;
 
   /* Wait for clock to be !BUSY.*/
-  while ((PWM_CTL & 0x80) != 0);
+  while ((GPIO0_CLK_CTL & 0x80) != 0);
 
   /* set pwm div to 32 (19.2/32 = 600KHz).*/
   GPIO0_CLK_DIV = GPIO_CLK_PWD | (32 << 12);
 
-  /* enable clk.*/
+  /* enable clock generator.*/
   GPIO0_CLK_CTL = GPIO_CLK_PWD | 0x11;
 
   /* N/M -- N = DATA, M = RANGE.*/
@@ -154,6 +155,9 @@ void pwm_lld_enable_channel(PWMDriver *pwmp,
 
   /* Enable PWMs in balanced mode (default).*/
   PWM_CTL |= PWM0_ENABLE;
+  mini_uart_sendhexln(PWM_CTL);
+  mini_uart_sendhexln(GPIO0_CLK_CTL);
+  mini_uart_sendhexln(GPIO0_CLK_DIV);
 }
 
 /**
@@ -178,7 +182,7 @@ void pwm_lld_disable_channel(PWMDriver *pwmp, pwmchannel_t channel) {
   PWM_CTL = 0 ;	
 
   /* Set default pin function.*/
-  bcm2835_gpio_fnsel(19, GPFN_IN);
+  bcm2835_gpio_fnsel(18, GPFN_IN);
 }
 
 #endif /* HAL_USE_PWM */
