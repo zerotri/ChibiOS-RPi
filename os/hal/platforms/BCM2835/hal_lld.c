@@ -117,6 +117,16 @@ CH_IRQ_HANDLER(IrqHandler)
 /*===========================================================================*/
 
 /**
+ * @brief Synchronize function for short delays.
+ *
+ */
+void delayMicroseconds(uint32_t n)
+{
+  uint32_t compare = SYSTIMER_CLO + n;
+  while (SYSTIMER_CLO < compare);
+}
+
+/**
  * @brief   Low level HAL driver initialization.
  *
  * @notapi

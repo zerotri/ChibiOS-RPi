@@ -74,6 +74,7 @@ extern "C" {
 #endif
   void hal_lld_init(void);
 
+  void delayMicroseconds(uint32_t n);
 #ifdef __cplusplus
 }
 #endif

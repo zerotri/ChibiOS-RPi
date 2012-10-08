@@ -337,4 +337,25 @@ typedef struct bscdevice_t bscdevice_t;
 #define SPI_CS_CPHA                 0x00000004 /* @brief Clock Phase.*/
 #define SPI_CS_CS                   0x00000003 /* @brief Chip Select.*/
 
+// *****************************************************************************
+//                  Pulse Width Modulation (PWM)
+// *****************************************************************************
+
+#define PWM_CTL        REG(0x2020C000)
+#define PWM_STATUS     REG(0x2020C004)
+
+#define PWM0_RANGE     REG(0x2020C010)
+#define PWM0_DATA      REG(0x2020C01C)
+#define PWM0_FIFO      REG(0x2020C020)
+
+#define PWM0_ENABLE    BIT(0)
+#define PWM0_MODE_MS   BIT(7)
+
+#define PWM_MODE_MS    0xFF
+
+#define GPIO_CLK_PWD   0x5a000000
+
+#define GPIO0_CLK_CTL   REG(0x2010070)
+#define GPIO0_CLK_DIV   REG(0x2010074)
+
 #endif

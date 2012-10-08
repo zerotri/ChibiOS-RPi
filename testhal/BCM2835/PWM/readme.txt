@@ -4,11 +4,11 @@
 
 ** TARGET **
 
-The GPT demo runs on an Raspberry Pi RevB board.
+The PWM demo runs on an Raspberry Pi RevB board.
 
 ** The Demo **
 
-This shows use of the polling and oneshot/continuous async timers.
+This demo shows use of hardware PWM peripheral.
 
 ** Build Procedure **
 
