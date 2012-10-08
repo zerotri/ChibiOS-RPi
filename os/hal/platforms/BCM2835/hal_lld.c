@@ -135,4 +135,35 @@ void hal_lld_init(void) {
   systimer_init();
 }
 
+/**
+ * @brief Start watchdog timer
+ */
+void watchdog_start ( uint32_t timeout )
+{
+    /* Setup watchdog for reset */
+    uint32_t pm_rstc = PM_RSTC;
+
+    //* watchdog timer = timer clock / 16; need password (31:16) + value (11:0) */
+    uint32_t pm_wdog = PM_PASSWORD | (timeout & PM_WDOG_TIME_SET); 
+    pm_rstc = PM_PASSWORD | (pm_rstc & PM_RSTC_WRCFG_CLR) | PM_RSTC_WRCFG_FULL_RESET;
+    PM_WDOG = pm_wdog;
+    PM_RSTC = pm_rstc;
+}
+
+/**
+ * @brief Start watchdog timer
+ */
+void watchdog_stop ( void )
+{
+  PM_RSTC = PM_PASSWORD | PM_RSTC_RESET;
+}
+
+/**
+ * @brief Get remaining watchdog time.
+ */
+uint32_t watchdog_get_remaining ( void )
+{
+  return PM_WDOG & PM_WDOG_TIME_SET;
+}
+
 /** @} */

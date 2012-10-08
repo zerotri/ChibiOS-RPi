@@ -75,6 +75,11 @@ extern "C" {
   void hal_lld_init(void);
 
   void delayMicroseconds(uint32_t n);
+
+  void watchdog_start ( uint32_t timeout );
+  void watchdog_stop ( void );
+  uint32_t watchdog_get_remaining ( void );
+
 #ifdef __cplusplus
 }
 #endif

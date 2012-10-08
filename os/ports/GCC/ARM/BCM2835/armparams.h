@@ -40,7 +40,9 @@
 /**
  * @brief   BCM2835-specific wait for interrupt.
  */
-#define port_wait_for_interrupt() 
+#define port_wait_for_interrupt() {                               \
+  asm volatile ("MCR p15,0,r0,c7,c0,4" : : : "memory");           \
+}
   
 #endif /* _ARMPARAMS_H_ */
 
