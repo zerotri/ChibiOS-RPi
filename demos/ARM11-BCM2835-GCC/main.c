@@ -83,12 +83,24 @@ static void cmd_test(BaseSequentialStream *chp, int argc, char *argv[]) {
 
 #endif // EXTENDED_SHELL
 
+static void cmd_reboot(BaseSequentialStream *chp, int argc, char *argv[]) {
+  UNUSED(argv);
+  if (argc > 0) {
+    chprintf(chp, "Usage: reboot\r\n");
+    return;
+  }
+
+  /* Watchdog will cause reset after 1 tick.*/
+  watchdog_start(1);
+}
+
 static const ShellCommand commands[] = {
 #ifdef EXTENDED_SHELL
   {"mem", cmd_mem},
   {"threads", cmd_threads},
   {"test", cmd_test},
 #endif
+  {"reboot", cmd_reboot},
   {NULL, NULL}
 };
 

@@ -337,4 +337,41 @@ typedef struct bscdevice_t bscdevice_t;
 #define SPI_CS_CPHA                 0x00000004 /* @brief Clock Phase.*/
 #define SPI_CS_CS                   0x00000003 /* @brief Chip Select.*/
 
+// *****************************************************************************
+//                  Pulse Width Modulation (PWM)
+// *****************************************************************************
+
+#define PWM_CTL        REG(0x2020C000)
+#define PWM_STATUS     REG(0x2020C004)
+
+#define PWM0_RANGE     REG(0x2020C010)
+#define PWM0_DATA      REG(0x2020C01C)
+#define PWM0_FIFO      REG(0x2020C020)
+
+#define PWM0_ENABLE    BIT(0)
+#define PWM0_MODE_MS   BIT(7)
+
+#define PWM_MODE_MS    0xFF
+
+#define GPIO_CLK_PWD   0x5a000000
+
+#define GPIO0_CLK_CTL   REG(0x2010070)
+#define GPIO0_CLK_DIV   REG(0x2010074)
+
+// *****************************************************************************
+//       Power Management, Reset controller and Watchdog registers 
+// *****************************************************************************
+
+#define PM_BASE                  (0x20100000) 
+#define PM_RSTC                  REG(PM_BASE+0x1c)
+#define PM_WDOG                  REG(PM_BASE+0x24)
+
+#define PM_WDOG_RESET            0000000000
+#define PM_PASSWORD              0x5a000000
+#define PM_WDOG_TIME_SET         0x000fffff
+#define PM_RSTC_WRCFG_CLR        0xffffffcf
+#define PM_RSTC_WRCFG_SET        0x00000030
+#define PM_RSTC_WRCFG_FULL_RESET 0x00000020
+#define PM_RSTC_RESET            0x00000102
+
 #endif
