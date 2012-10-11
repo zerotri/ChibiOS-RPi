@@ -13,5 +13,6 @@ void bcm2835_gpio_fnsel(uint32_t gpio_pin, uint32_t gpio_fn)
   uint32_t gpfnbank = gpio_pin/10;
   uint32_t offset = (gpio_pin - (gpfnbank * 10)) * 3;
   volatile uint32_t *gpfnsel = &GPFSEL0 + gpfnbank;
+  *gpfnsel &= ~(0x07 << offset);
   *gpfnsel |= (gpio_fn << offset);
 }

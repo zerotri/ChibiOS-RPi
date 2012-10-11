@@ -75,7 +75,7 @@ static void delay(uint32_t n)
 void sd_lld_serve_interrupt( SerialDriver *sdp ) {
   if (AUX_MU_IIR_RX_IRQ) {
     chSysLockFromIsr();
-    do {			
+    do {	
       sdIncomingDataI(sdp, AUX_MU_IO_REG & 0xFF);
     } while (AUX_MU_LSR_RX_RDY);
     chSysUnlockFromIsr();
@@ -124,7 +124,7 @@ void sd_lld_start(SerialDriver *sdp, const SerialConfig *config) {
   if (config == NULL)
     config = &default_config;
 
-  IRQ_DISABLE1 |= BIT(29);
+  IRQ_DISABLE1 = BIT(29);
 	
   AUX_ENABLES = 1;
   
@@ -134,21 +134,21 @@ void sd_lld_start(SerialDriver *sdp, const SerialConfig *config) {
   AUX_MU_MCR_REG  = 0x00;
   AUX_MU_IER_REG  = 0x05;
   AUX_MU_IIR_REG  = 0xC6; 
-
   AUX_MU_BAUD_REG = BAUD_RATE_COUNT(config->baud_rate);
-  
+
   bcm2835_gpio_fnsel(14, GPFN_ALT5);
   bcm2835_gpio_fnsel(15, GPFN_ALT5);
-  
+
   GPPUD = 0;
-  delay(150);
+  delay(1500);
   GPPUDCLK0 = (1<<14)|(1<<15);
-  delay(150);
+  delay(1500);
   GPPUDCLK0 = 0;
   
   AUX_MU_CNTL_REG = 0x03;
 
-  IRQ_ENABLE1 |= BIT(29);
+
+  IRQ_ENABLE1 = BIT(29);
 }
 
 /**
