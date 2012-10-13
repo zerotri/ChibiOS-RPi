@@ -28,6 +28,7 @@
 
 #include "ch.h"
 #include "hal.h"
+#include "chprintf.h"
 
 #if HAL_USE_PAL || defined(__DOXYGEN__)
 
@@ -50,6 +51,27 @@ gpio_port_t IOPORT1;
 /* Driver local functions.                                                   */
 /*===========================================================================*/
 
+static void set_gpio_pud(ioportid_t port, ioportmask_t mask, uint32_t pud_mode) {
+  // pg. 101 BCM2835 ARM Peripherals Reference
+  GPPUD = pud_mode;
+  bcm2835_delay(150);
+  chprintf((BaseSequentialStream *)&SD1,"Addr: %.8x\r\n", (uint32_t)(port->gppudclk));
+  *port->gppudclk = mask;
+  bcm2835_delay(150);
+  *port->gppudclk = 0;
+  GPPUD = GPIO_PUD_DISABLE;
+}
+
+static void set_gpio_in(ioportid_t port, ioportmask_t mask) {
+  int i;
+  for (i = 0; i < 32; i++) {
+    unsigned int bit = mask & 1;
+    if (bit) 
+      bcm2835_gpio_fnsel(i + port->pin_base, GPFN_IN);
+    mask >>= 1;
+  }
+}
+
 /*===========================================================================*/
 /* Driver interrupt handlers.                                                */
 /*===========================================================================*/
@@ -65,23 +87,31 @@ void _pal_lld_init(const PALConfig* config) {
   IOPORT0.gpset = &GPSET0;
   IOPORT0.gpclr = &GPCLR0;
   IOPORT0.gplev = &GPLEV0;
+  IOPORT0.gppudclk = &GPPUDCLK0;
+  set_gpio_in(&IOPORT0, 0xFFFFFFFF);
 
   IOPORT1.gpset = &GPSET1;
   IOPORT1.gpclr = &GPCLR1;
   IOPORT1.gplev = &GPLEV1;
+  IOPORT1.gppudclk = &GPPUDCLK1;
   IOPORT1.pin_base = 32;
+  set_gpio_in(&IOPORT1, 0xFFFFFFFF);
 }
 
 void _pal_lld_setgroupmode(ioportid_t port, ioportmask_t mask, uint32_t mode) {
   int i;
   switch (mode) {
   case PAL_MODE_INPUT:
-    for (i = 0; i < 32; i++) {
-      unsigned int bit = mask & 1;
-      if (bit) 
-        bcm2835_gpio_fnsel(i + port->pin_base, GPFN_IN);
-      mask >>= 1;
-    }
+    set_gpio_in(port, mask);
+    set_gpio_pud(port, mask, GPIO_PUD_DISABLE);
+    break;
+  case PAL_MODE_INPUT_PULLUP:
+    set_gpio_in(port, mask);
+    set_gpio_pud(port, mask, GPIO_PUD_PULLUP);
+    break;
+  case PAL_MODE_INPUT_PULLDOWN:
+    set_gpio_in(port, mask);
+    set_gpio_pud(port, mask, GPIO_PUD_PULLDOWN);
     break;
   case PAL_MODE_OUTPUT_PUSHPULL:
   case PAL_MODE_OUTPUT_OPENDRAIN:

@@ -33,20 +33,20 @@ int main(void) {
    * Serial port initialization.
    */
   sdStart(&SD1, NULL); 
-  chprintf((BaseSequentialStream *)&SD1, "BCM2835 RTC Demonstration\r\n");
+  chprintf((BaseSequentialStream *)&SD1, "BCM2835 GPIO Demonstration\r\n");
 
-  //uint8_t request[] = { 0x00, 0x30, 0x20, 0x08, 0x06, 0x06, 0x10, 0x12 };
-  //i2cMasterTransmit(&I2C0, 0x68, request, 7, NULL, 0);
+  /*
+   * Set mode of onboard LED
+   */
+  palSetPadMode(GPIO18_PORT, GPIO18_PAD, PAL_MODE_OUTPUT_OPENDRAIN);
+  palSetPadMode(GPIO4_PORT, GPIO4_PAD, PAL_MODE_INPUT_PULLUP);
 
   for (;;) {
-
-    RTCTime time;
-    rtcGetTime(&RTCD1, &time);
-    chprintf((BaseSequentialStream *)&SD1, "%.2d/%.2d/%.2d %.2d:%.2d:%.2d\r\n",
-	     rtc_month(time), rtc_day(time), rtc_year(time),
-	     rtc_hour(time), rtc_minute(time), rtc_second(time));
-
-    chThdSleepMilliseconds(1000);
+    uint32_t button_state = palReadPad(GPIO4_PORT, GPIO4_PAD);
+    if (button_state) {
+      palTogglePad(GPIO18_PORT, GPIO18_PAD);
+    }
+    chThdSleepMilliseconds(250);
   }
 
   /*

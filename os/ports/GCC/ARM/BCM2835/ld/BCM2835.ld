@@ -31,7 +31,7 @@ __stacks_total_size__	= __und_stack_size__ + __abt_stack_size__ + __fiq_stack_si
 
 MEMORY
 {
-    ram : org = 0x8000, len = 64k - 0x20
+    ram : org = 0x8000, len = 0x06000000 - 0x20
 }
 
 __ram_start__		= ORIGIN(ram);

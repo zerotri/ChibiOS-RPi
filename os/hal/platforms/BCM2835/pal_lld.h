@@ -49,7 +49,7 @@ typedef struct {
   volatile uint32_t *gpset;
   volatile uint32_t *gpclr;
   volatile uint32_t *gplev;
-  
+  volatile uint32_t *gppudclk;
   unsigned int pin_base;
   
 } gpio_port_t;

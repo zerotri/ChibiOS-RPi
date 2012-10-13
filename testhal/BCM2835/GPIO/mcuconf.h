@@ -18,41 +18,34 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "ch.h"
-#include "hal.h"
-#include "chprintf.h"
+/*
+ * BCM2835 drivers configuration.
+ * The following settings override the default settings present in
+ * the various device driver implementation headers.
+ * Note that the settings for each driver only have effect if the driver
+ * is enabled in halconf.h.
+ */
 
 /*
- * Application entry point.
+ * ADC driver system settings.
  */
-int main(void) {
-  halInit();
-  chSysInit();
 
-  /*
-   * Serial port initialization.
-   */
-  sdStart(&SD1, NULL); 
-  chprintf((BaseSequentialStream *)&SD1, "BCM2835 RTC Demonstration\r\n");
+/*
+ * CAN driver system settings.
+ */
 
-  //uint8_t request[] = { 0x00, 0x30, 0x20, 0x08, 0x06, 0x06, 0x10, 0x12 };
-  //i2cMasterTransmit(&I2C0, 0x68, request, 7, NULL, 0);
+/*
+ * MAC driver system settings.
+ */
 
-  for (;;) {
+/*
+ * PWM driver system settings.
+ */
 
-    RTCTime time;
-    rtcGetTime(&RTCD1, &time);
-    chprintf((BaseSequentialStream *)&SD1, "%.2d/%.2d/%.2d %.2d:%.2d:%.2d\r\n",
-	     rtc_month(time), rtc_day(time), rtc_year(time),
-	     rtc_hour(time), rtc_minute(time), rtc_second(time));
+/*
+ * SERIAL driver system settings.
+ */
 
-    chThdSleepMilliseconds(1000);
-  }
-
-  /*
-   * Events servicing loop.
-   */
-  chThdWait(chThdSelf());
-
-  return 0;
-}
+/*
+ * SPI driver system settings.
+ */

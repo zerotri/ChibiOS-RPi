@@ -62,12 +62,6 @@ static void output_notify(GenericQueue *qp) {
   AUX_MU_IER_REG |= AUX_MU_IER_TX_IRQEN; 
 }
 
-static void delay(uint32_t n)
-{
-  volatile uint32_t i = 0;
-  for(i = 0; i < n; i++);
-}
-
 /*===========================================================================*/
 /* Driver interrupt handlers.                                                */
 /*===========================================================================*/
@@ -140,9 +134,9 @@ void sd_lld_start(SerialDriver *sdp, const SerialConfig *config) {
   bcm2835_gpio_fnsel(15, GPFN_ALT5);
 
   GPPUD = 0;
-  delay(1500);
+  bcm2835_delay(150);
   GPPUDCLK0 = (1<<14)|(1<<15);
-  delay(1500);
+  bcm2835_delay(150);
   GPPUDCLK0 = 0;
   
   AUX_MU_CNTL_REG = 0x03;

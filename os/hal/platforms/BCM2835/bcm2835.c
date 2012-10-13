@@ -16,3 +16,10 @@ void bcm2835_gpio_fnsel(uint32_t gpio_pin, uint32_t gpio_fn)
   *gpfnsel &= ~(0x07 << offset);
   *gpfnsel |= (gpio_fn << offset);
 }
+
+void bcm2835_delay(uint32_t n)
+{
+  volatile uint32_t i = 0;
+  for(i = 0; i < n; i++);
+}
+

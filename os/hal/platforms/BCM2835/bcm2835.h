@@ -30,8 +30,13 @@
 #define GPFSEL4 	REG(0x20200010)
 #define GPFSEL6 	REG(0x20200014)
 
-#define GPPUD       REG(0x20200094)
-#define GPPUDCLK0   REG(0x20200098)
+#define GPPUD           REG(0x20200094)
+#define GPPUDCLK0       REG(0x20200098)
+#define GPPUDCLK1       REG(0x2020009C)
+
+#define GPIO_PUD_DISABLE  0x00
+#define GPIO_PUD_PULLDOWN 0x01
+#define GPIO_PUD_PULLUP   0x10
 
 // -------- GPIO Functions --------
 #define GPFN_IN	  	0x00
@@ -156,8 +161,6 @@
 // ----- GPIO - Onboard LED -------
 #define LED_PORT        GPIO16_PORT
 #define LED_PAD         GPIO16_PAD
-
-void bcm2835_gpio_fnsel(uint32_t gpio_pin, uint32_t gpio_function);
 
 // *****************************************************************************
 //                          Timer (ARM Side)
@@ -373,5 +376,20 @@ typedef struct bscdevice_t bscdevice_t;
 #define PM_RSTC_WRCFG_SET        0x00000030
 #define PM_RSTC_WRCFG_FULL_RESET 0x00000020
 #define PM_RSTC_RESET            0x00000102
+
+// *****************************************************************************
+//                 Support Functions
+// *****************************************************************************
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+  void bcm2835_gpio_fnsel(uint32_t gpio_pin, uint32_t gpio_function);
+  void bcm2835_delay(uint32_t n);
+
+#ifdef __cplusplus
+  }
+#endif
 
 #endif
