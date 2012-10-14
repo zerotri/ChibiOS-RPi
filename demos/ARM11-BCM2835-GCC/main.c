@@ -114,9 +114,9 @@ static msg_t Thread1(void *p) {
   (void)p;
   chRegSetThreadName("blinker");
   while (TRUE) {
-    palClearPad(LED_PORT, LED_PAD);
+    palClearPad(ONBOARD_LED_PORT, ONBOARD_LED_PAD);
     chThdSleepMilliseconds(100);
-    palSetPad(LED_PORT, LED_PAD);
+    palSetPad(ONBOARD_LED_PORT, ONBOARD_LED_PAD);
     chThdSleepMilliseconds(900);
   }
   return 0;

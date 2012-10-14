@@ -42,6 +42,12 @@
  */
 #define PLATFORM_NAME   "BCM2835"
 
+/**
+ * @brief Extension of ChibiOS's PAL output modes.
+ *
+ */
+#define PAL_MODE_OUTPUT 0xFF
+
 /*===========================================================================*/
 /* Driver pre-compile time settings.                                         */
 /*===========================================================================*/

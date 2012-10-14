@@ -55,11 +55,10 @@ static void set_gpio_pud(ioportid_t port, ioportmask_t mask, uint32_t pud_mode) 
   // pg. 101 BCM2835 ARM Peripherals Reference
   GPPUD = pud_mode;
   bcm2835_delay(150);
-  chprintf((BaseSequentialStream *)&SD1,"Addr: %.8x\r\n", (uint32_t)(port->gppudclk));
   *port->gppudclk = mask;
   bcm2835_delay(150);
+  GPPUD = 0;
   *port->gppudclk = 0;
-  GPPUD = GPIO_PUD_DISABLE;
 }
 
 static void set_gpio_in(ioportid_t port, ioportmask_t mask) {
@@ -103,7 +102,7 @@ void _pal_lld_setgroupmode(ioportid_t port, ioportmask_t mask, uint32_t mode) {
   switch (mode) {
   case PAL_MODE_INPUT:
     set_gpio_in(port, mask);
-    set_gpio_pud(port, mask, GPIO_PUD_DISABLE);
+    set_gpio_pud(port, mask, GPIO_PUD_OFF);
     break;
   case PAL_MODE_INPUT_PULLUP:
     set_gpio_in(port, mask);
@@ -113,6 +112,7 @@ void _pal_lld_setgroupmode(ioportid_t port, ioportmask_t mask, uint32_t mode) {
     set_gpio_in(port, mask);
     set_gpio_pud(port, mask, GPIO_PUD_PULLDOWN);
     break;
+  case PAL_MODE_OUTPUT:
   case PAL_MODE_OUTPUT_PUSHPULL:
   case PAL_MODE_OUTPUT_OPENDRAIN:
     for (i = 0; i < 32; i++) {

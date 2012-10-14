@@ -34,9 +34,10 @@
 #define GPPUDCLK0       REG(0x20200098)
 #define GPPUDCLK1       REG(0x2020009C)
 
-#define GPIO_PUD_DISABLE  0x00
+#define GPIO_PUD_OFF      0x00
+#define GPIO_PUD_TRISTATE 0x00
 #define GPIO_PUD_PULLDOWN 0x01
-#define GPIO_PUD_PULLUP   0x10
+#define GPIO_PUD_PULLUP   0x02
 
 // -------- GPIO Functions --------
 #define GPFN_IN	  	0x00
@@ -159,8 +160,8 @@
 #define GPIO53_PORT     &IOPORT1
 
 // ----- GPIO - Onboard LED -------
-#define LED_PORT        GPIO16_PORT
-#define LED_PAD         GPIO16_PAD
+#define ONBOARD_LED_PORT        GPIO16_PORT
+#define ONBOARD_LED_PAD         GPIO16_PAD
 
 // *****************************************************************************
 //                          Timer (ARM Side)
@@ -348,18 +349,23 @@ typedef struct bscdevice_t bscdevice_t;
 #define PWM_STATUS     REG(0x2020C004)
 
 #define PWM0_RANGE     REG(0x2020C010)
-#define PWM0_DATA      REG(0x2020C01C)
-#define PWM0_FIFO      REG(0x2020C020)
+#define PWM0_DATA      REG(0x2020C014)
+
+#define PWM1_RANGE     REG(0x2020C020)
+#define PWM1_DATA      REG(0x2020C024)
 
 #define PWM0_ENABLE    BIT(0)
 #define PWM0_MODE_MS   BIT(7)
+
+#define PWM1_ENABLE    BIT(8)
+#define PWM1_MODE_MS   BIT(15)
 
 #define PWM_MODE_MS    0xFF
 
 #define GPIO_CLK_PWD   0x5a000000
 
-#define GPIO0_CLK_CTL   REG(0x2010070)
-#define GPIO0_CLK_DIV   REG(0x2010074)
+#define GPIO0_CLK_CTL  REG(0x201010A0)
+#define GPIO0_CLK_DIV  REG(0x201010A4)
 
 // *****************************************************************************
 //       Power Management, Reset controller and Watchdog registers 

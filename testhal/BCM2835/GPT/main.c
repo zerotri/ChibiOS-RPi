@@ -57,7 +57,7 @@ int main(void) {
    * Serial port initialization.
    */
   sdStart(&SD1, NULL); 
-  chprintf((BaseSequentialStream *)&SD1, "BCM2835 I2C Demonstration\r\n");
+  chprintf((BaseSequentialStream *)&SD1, "BCM2835 GPT Demonstration\r\n");
 
   /*
    * Serial General Purpose Timer (GPT) #1 initialization.

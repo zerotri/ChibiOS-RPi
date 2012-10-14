@@ -33,29 +33,35 @@ int main(void) {
    * Serial port initialization.
    */
   sdStart(&SD1, NULL); 
-  chprintf((BaseSequentialStream *)&SD1, "BCM2835 GPIO Demonstration\r\n");
-
-  ioportid_t ledPort = ONBOARD_LED_PORT;
-  uint32_t ledPad = ONBOARD_LED_PAD;
-
-  palSetPadMode(ledPort, ledPad, PAL_MODE_OUTPUT);
-  palSetPad(ledPort, ledPad);
-
-  palSetPadMode(GPIO4_PORT, GPIO4_PAD, PAL_MODE_INPUT_PULLUP);
-
-  for (;;) {
-    uint32_t button_state = palReadPad(GPIO4_PORT, GPIO4_PAD);
-    if (button_state) {
-      palSetPad(ledPort, ledPad);
-    }
-    else {
-      palClearPad(ledPort, ledPad);
-    }
-  }
+  chprintf((BaseSequentialStream *)&SD1, "BCM2835 PWM Demonstration\r\n");
 
   /*
-   * Events servicing loop.
+   * Serial General Purpose Timer (GPT) #1 initialization.
    */
+  PWMConfig pwmConfig;
+  pwmConfig.period = 1024;
+
+  pwmStart(&PWMD1, &pwmConfig);
+
+  int bright;
+
+  for (;;)
+  {
+    for (bright = 0 ; bright < 1024 ; ++bright)
+    {
+      pwmEnableChannel(&PWMD1, 0, bright);
+      chThdSleepMilliseconds(1);
+    }
+
+    for (bright = 1023 ; bright >= 0 ; --bright)
+    {
+      pwmEnableChannel(&PWMD1, 0, bright);
+      chThdSleepMilliseconds(1);
+    }
+
+    chprintf((BaseSequentialStream *)&SD1, "tick\r\n");
+  }
+
   chThdWait(chThdSelf());
 
   return 0;

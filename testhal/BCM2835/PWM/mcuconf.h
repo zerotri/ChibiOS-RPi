@@ -18,45 +18,40 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "ch.h"
-#include "hal.h"
-#include "chprintf.h"
+/*
+ * BCM2835 drivers configuration.
+ * The following settings override the default settings present in
+ * the various device driver implementation headers.
+ * Note that the settings for each driver only have effect if the driver
+ * is enabled in halconf.h.
+ */
 
 /*
- * Application entry point.
+ * ADC driver system settings.
  */
-int main(void) {
-  halInit();
-  chSysInit();
 
-  /*
-   * Serial port initialization.
-   */
-  sdStart(&SD1, NULL); 
-  chprintf((BaseSequentialStream *)&SD1, "BCM2835 GPIO Demonstration\r\n");
+/*
+ * CAN driver system settings.
+ */
 
-  ioportid_t ledPort = ONBOARD_LED_PORT;
-  uint32_t ledPad = ONBOARD_LED_PAD;
+/*
+ * MAC driver system settings.
+ */
 
-  palSetPadMode(ledPort, ledPad, PAL_MODE_OUTPUT);
-  palSetPad(ledPort, ledPad);
+/*
+ * PWM driver system settings.
+ */
 
-  palSetPadMode(GPIO4_PORT, GPIO4_PAD, PAL_MODE_INPUT_PULLUP);
+/*
+ * SERIAL driver system settings.
+ */
 
-  for (;;) {
-    uint32_t button_state = palReadPad(GPIO4_PORT, GPIO4_PAD);
-    if (button_state) {
-      palSetPad(ledPort, ledPad);
-    }
-    else {
-      palClearPad(ledPort, ledPad);
-    }
-  }
+/*
+ * SPI driver system settings.
+ */
 
-  /*
-   * Events servicing loop.
-   */
-  chThdWait(chThdSelf());
-
-  return 0;
-}
+/*
+ * GPT driver system settings
+ */
+#define BCM2835_GPT_USE_TIMER1 1
+#define BCM2835_GPT_USE_TIMER2 1
