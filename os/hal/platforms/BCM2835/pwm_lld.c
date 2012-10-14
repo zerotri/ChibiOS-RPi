@@ -39,7 +39,7 @@
 /* Driver exported variables.                                                */
 /*===========================================================================*/
 
-PWMDriver PWMD1;
+PWMDriver PWMD1; /* Only supporting PWM1 for now. */
 
 /*===========================================================================*/
 /* Driver local variables.                                                   */

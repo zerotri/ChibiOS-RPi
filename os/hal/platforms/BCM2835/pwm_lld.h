@@ -143,6 +143,7 @@ struct PWMDriver {
   PWM_DRIVER_EXT_FIELDS
 #endif
   /* End of the mandatory fields.*/
+  
 };
 
 /*===========================================================================*/

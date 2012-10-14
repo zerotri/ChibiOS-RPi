@@ -142,15 +142,9 @@ int main(void) {
   shellCreate(&shell_config, SHELL_WA_SIZE, NORMALPRIO + 1);
 
   /*
-   * I2C initialization.
-   */
-  I2CConfig i2cConfig;
-  i2cStart(&I2C0, &i2cConfig);
-
-  /*
    * Set mode of onboard LED
    */
-  palSetPadMode(GPIO16_PORT, GPIO16_PAD, PAL_MODE_OUTPUT_OPENDRAIN);
+  palSetPadMode(ONBOARD_LED_PORT, ONBOARD_LED_PAD, PAL_MODE_OUTPUT);
 
   /*
    * Creates the blinker thread.
