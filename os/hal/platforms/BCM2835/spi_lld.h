@@ -72,6 +72,12 @@ typedef struct {
   spicallback_t         end_cb;
   /* End of the mandatory fields.*/
 
+  /* @brief LoSSI enable
+   * 0 = The serial interface will behave as an SPI master.
+   * 1 = The serial interface will behave as a LoSSI master.
+   */
+  uint8_t               lossiEnabled;
+
   /* @brief 00=Chip select 0, 01=Chip select 1 */
   uint8_t               chip_select;
 

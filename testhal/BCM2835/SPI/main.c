@@ -60,7 +60,7 @@ int main(void) {
     spiExchange(&SPI0, 3, txbuf, rxbuf);
     vt100_clearscreen();
     vt100_cursorhome();
-    chprintf((BaseSequentialStream *)&SD1, "%-5d %.2x %.2x", 
+    chprintf((BaseSequentialStream *)&SD1, "%-5d %.2x %.2x ", 
 	     ((rxbuf[0] & 0x03) << 8) | rxbuf[1], rxbuf[0] & 0x03, rxbuf[1]);
     chThdSleepMilliseconds(100);
   }

@@ -55,14 +55,13 @@ SPIDriver SPI0;
 /* Driver interrupt handlers.                                                */
 /*===========================================================================*/
 
-#define read_fifo(spip)                  \
-  {                                      \
-      while (SPI0_CS & SPI_CS_RXD) {     \
-	uint8_t rx = SPI0_FIFO;          \
-	if ((spip)->rxbuf)		 \
-	  *((spip)->rxbuf)++ = rx;	 \
-      }                                  \
-  }
+#define read_fifo(spip) {                \
+  while (SPI0_CS & SPI_CS_RXD) {         \
+    uint8_t rx = SPI0_FIFO;		 \
+    if ((spip)->rxbuf)			 \
+      *((spip)->rxbuf)++ = rx;		 \
+  }					 \
+}
 
 
 /**
@@ -120,28 +119,38 @@ void spi_lld_start(SPIDriver *spip) {
 
   IRQ_DISABLE2 |= BIT(22);
 
+  /* This can be optimized to setting two masks.*/
   bcm2835_gpio_fnsel(7, GPFN_ALT0);   /* SPI0_CE1_N.*/
   bcm2835_gpio_fnsel(8, GPFN_ALT0);   /* SPI0_CE0_N.*/
   bcm2835_gpio_fnsel(9, GPFN_ALT0);   /* SPI0_MOSI.*/
   bcm2835_gpio_fnsel(10, GPFN_ALT0);  /* SPI0_MISO.*/
   bcm2835_gpio_fnsel(11, GPFN_ALT0);  /* SPIO_SCLK.*/
 
+  uint32_t control = 0;
+
+  /* Not using bidirectional mode.*/
+  control &= ~SPI_CS_REN;
+
   if (spip->config->clock_polarity)
-    SPI0_CS |= SPI_CS_CPOL;
+    control |= SPI_CS_CPOL;
 
   if (spip->config->clock_phase)
-    SPI0_CS |= SPI_CS_CPHA;
+    control |= SPI_CS_CPHA;
 
   if (spip->config->chip_select_polarity)
-    SPI0_CS |= SPI_CS_CSPOL;
+    control |= SPI_CS_CSPOL;
 
   if (spip->config->chip_select_polarity0)
-    SPI0_CS |= SPI_CS_CSPOL0;
+    control |= SPI_CS_CSPOL0;
 
   if (spip->config->chip_select_polarity1)
-    SPI0_CS |= SPI_CS_CSPOL1;
+    control |= SPI_CS_CSPOL1;
 
-  SPI0_CS = SPI_CS_CLEAR_TX | SPI_CS_CLEAR_RX;
+  if (spip->config->lossiEnabled)
+    control |= SPI_CS_LEN;
+
+  /* Optimization: precompute control mask? Could be externally changed.*/
+  SPI0_CS = control | SPI_CS_CLEAR_TX | SPI_CS_CLEAR_RX;
 
   IRQ_ENABLE2 |= BIT(22);
 }
@@ -158,6 +167,7 @@ void spi_lld_stop(SPIDriver *spip) {
 
   IRQ_DISABLE2 |= BIT(22);
 
+  /* This can be optimized to setting two masks.*/
   bcm2835_gpio_fnsel(7, GPFN_IN);
   bcm2835_gpio_fnsel(8, GPFN_IN);
   bcm2835_gpio_fnsel(9, GPFN_IN);
@@ -189,7 +199,11 @@ void spi_lld_select(SPIDriver *spip) {
  */
 void spi_lld_unselect(SPIDriver *spip) {
   UNUSED(spip);
-  SPI0_CS |= 0x03 << 17;
+  /* This sets the CS back to CS0.
+   * There's no way to turn off all chip selects.
+   * However, the CS is only active during transfers.
+   */
+  SPI0_CS &= ~SPI_CS_CS;
 }
 
 /**
@@ -225,7 +239,7 @@ void spi_lld_ignore(SPIDriver *spip, size_t n) {
 void spi_lld_exchange(SPIDriver *spip, size_t n,
                       const void *txbuf, void *rxbuf) {
   /* Clear TX and RX fifos.*/
-  SPI0_CS = SPI_CS_CLEAR_TX | SPI_CS_CLEAR_RX;
+  SPI0_CS |= SPI_CS_CLEAR_TX | SPI_CS_CLEAR_RX;
 
   spip->txbuf = txbuf;
   spip->txcnt = n;
@@ -284,11 +298,8 @@ void spi_lld_receive(SPIDriver *spip, size_t n, void *rxbuf) {
 uint16_t spi_lld_polled_exchange(SPIDriver *spip, uint8_t frame) {
   UNUSED(spip);
 
-  /* Clear TX and RX fifos.*/
-  SPI0_CS = SPI_CS_CLEAR_TX | SPI_CS_CLEAR_RX;
-
-  /* Set TA = 1.*/
-  SPI0_CS |= SPI_CS_TA;
+  /* Clear TX and RX fifos. Start transfer.*/
+  SPI0_CS |= SPI_CS_CLEAR_TX | SPI_CS_CLEAR_RX | SPI_CS_TA;
 
   /* Wait for space in TX FIFO.*/
   while (!(SPI0_CS & SPI_CS_TXD));
