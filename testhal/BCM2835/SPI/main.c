@@ -24,6 +24,14 @@
 
 SPIConfig spiConfig;
 
+static void vt100_clearscreen(void) {
+    chprintf((BaseSequentialStream *)&SD1, "%c[2J", 0x1b);
+}
+
+static void vt100_cursorhome(void) {
+    chprintf((BaseSequentialStream *)&SD1, "%c[H", 0x1b);
+}
+
 /*
  * Application entry point.
  */
@@ -40,7 +48,7 @@ int main(void) {
   /*
    * SPI startup.
    */
-  spiConfig.chip_select = 0b00;
+  spiConfig.chip_select = 0;;
   spiStart(&SPI0, &spiConfig);
 
   spiSelect(&SPI0);
@@ -50,8 +58,10 @@ int main(void) {
 
   for (;;) {
     spiExchange(&SPI0, 3, txbuf, rxbuf);
-    chprintf((BaseSequentialStream *)&SD1, "%c[2J%c[H%-5d %.2x %.2x", 
-	     0x1b, 0x1b,  ((rxbuf[0] & 0x03) << 8) | rxbuf[1], rxbuf[0] & 0x03, rxbuf[1]);
+    vt100_clearscreen();
+    vt100_cursorhome();
+    chprintf((BaseSequentialStream *)&SD1, "%-5d %.2x %.2x", 
+	     ((rxbuf[0] & 0x03) << 8) | rxbuf[1], rxbuf[0] & 0x03, rxbuf[1]);
     chThdSleepMilliseconds(100);
   }
 
