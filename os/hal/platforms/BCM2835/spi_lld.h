@@ -146,12 +146,12 @@ struct SPIDriver {
   /**
    * @brief Receive buffer
    */
-  uint8_t               *rxbuf;
+  void                  *rxbuf;
 
   /**
    * @brief Transmit buffer
    */
-  const uint8_t         *txbuf;
+  const void            *txbuf;
 
   /**
    * @brief Pending transfer count

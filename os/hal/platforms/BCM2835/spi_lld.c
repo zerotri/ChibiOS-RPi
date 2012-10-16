@@ -55,12 +55,13 @@ SPIDriver SPI0;
 /* Driver interrupt handlers.                                                */
 /*===========================================================================*/
 
-#define read_fifo(spip) {                \
-  while (SPI0_CS & SPI_CS_RXD) {         \
-    uint8_t rx = SPI0_FIFO;		 \
-    if ((spip)->rxbuf)			 \
-      *((spip)->rxbuf)++ = rx;		 \
-  }					 \
+#define read_fifo(spip) {                       \
+  while (SPI0_CS & SPI_CS_RXD) {                \
+    uint32_t rx = SPI0_FIFO;                    \
+    uint8_t *rxbuf = (uint8_t *)(spip)->rxbuf;	\
+    if (rxbuf)                                  \
+      *rxbuf++ = rx;                            \
+  }                                             \
 }
 
 
@@ -76,8 +77,9 @@ void spi_lld_serve_interrupt(SPIDriver *spip) {
     uint32_t *count = &(spip->txcnt);
     if (*count > 0) {
       /* Fill FIFO */
+      uint8_t *txbuf = (uint8_t *)(spip)->txbuf;
       while ((SPI0_CS & SPI_CS_TXD) && *count > 0) {
-	SPI0_FIFO = spip->txbuf != NULL ? *(spip->txbuf)++ : 0;
+	SPI0_FIFO = spip->txbuf != NULL ? *(txbuf)++ : 0;
 	--*count;
       }
     }
