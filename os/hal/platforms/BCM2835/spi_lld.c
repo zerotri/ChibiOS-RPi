@@ -73,26 +73,39 @@ SPIDriver SPI0;
  * @notapi
  */
 void spi_lld_serve_interrupt(SPIDriver *spip) {
-  if (SPI0_CS & SPI_CS_DONE) {
-    uint32_t *count = &(spip->txcnt);
-    if (*count > 0) {
-      /* Fill FIFO */
-      uint8_t *txbuf = (uint8_t *)(spip)->txbuf;
-      while ((SPI0_CS & SPI_CS_TXD) && *count > 0) {
-	SPI0_FIFO = spip->txbuf != NULL ? *(txbuf)++ : 0;
-	--*count;
+  if (IRQ_PEND2 & SPI_IRQ) {
+    if (SPI0_CS & SPI_CS_DONE) {
+      size_t *count = &(spip->txcnt);
+      if (*count > 0) {
+	/* Fill FIFO */
+	if (spip->config->lossiEnabled) {
+	  /* LoSSI sends 9 bits (2 bytes) at a time.*/
+	  uint16_t *txbuf = (uint16_t *)(spip)->txbuf;
+	  while ((SPI0_CS & SPI_CS_TXD) && *count > 0) {
+	    SPI0_FIFO = spip->txbuf != NULL ? *(txbuf)++ : 0;
+	    *count -= 2;
+	  }
+	}
+	else {
+	  uint8_t *txbuf = (uint8_t *)(spip)->txbuf;
+	  while ((SPI0_CS & SPI_CS_TXD) && *count > 0) {
+	    SPI0_FIFO = spip->txbuf != NULL ? *(txbuf)++ : 0;
+	    --*count;
+	  }
+	}
+      }
+      else {
+	/* LoSSI-mode recv not supported yet.*/
+	read_fifo(spip);
+	/* Deactivate Transfer and disable SPI interrupts.*/
+	SPI0_CS &= ~(SPI_CS_INTD | SPI_CS_INTR | SPI_CS_TA);
+	_spi_isr_code(spip);
       }
     }
-    else {
-      read_fifo(spip);
-      // Deactivate Transfer and disable SPI interrupts
-      SPI0_CS &= ~(SPI_CS_INTD | SPI_CS_INTR | SPI_CS_TA);
-      _spi_isr_code(spip);
-    }
-  }
   
-  if (SPI0_CS & SPI_CS_RXR) {
-    read_fifo(spip);
+    if (SPI0_CS & SPI_CS_RXR) {
+      read_fifo(spip);
+    }
   }
 }
 
@@ -133,28 +146,30 @@ void spi_lld_start(SPIDriver *spip) {
   /* Not using bidirectional mode.*/
   control &= ~SPI_CS_REN;
 
-  if (spip->config->clock_polarity)
+  const SPIConfig *cfg = spip->config;
+
+  if (cfg->clock_polarity)
     control |= SPI_CS_CPOL;
 
-  if (spip->config->clock_phase)
+  if (cfg->clock_phase)
     control |= SPI_CS_CPHA;
 
-  if (spip->config->chip_select_polarity)
+  if (cfg->chip_select_polarity)
     control |= SPI_CS_CSPOL;
 
-  if (spip->config->chip_select_polarity0)
+  if (cfg->chip_select_polarity0)
     control |= SPI_CS_CSPOL0;
 
-  if (spip->config->chip_select_polarity1)
+  if (cfg->chip_select_polarity1)
     control |= SPI_CS_CSPOL1;
 
-  if (spip->config->lossiEnabled)
+  if (cfg->lossiEnabled)
     control |= SPI_CS_LEN;
 
   /* Optimization: precompute control mask? Could be externally changed.*/
   SPI0_CS = control | SPI_CS_CLEAR_TX | SPI_CS_CLEAR_RX;
 
-  IRQ_ENABLE2 |= BIT(22);
+  SPI0_CLK = cfg->clock_divider;
 }
 
 /**
@@ -188,7 +203,7 @@ void spi_lld_select(SPIDriver *spip) {
   uint32_t cs = SPI0_CS;
   cs &= ~SPI_CS_CS;
   cs |= (spip->config->chip_select & SPI_CS_CS);
-  SPI0_CS &= cs;
+  SPI0_CS = cs;
 }
 
 /**
@@ -249,6 +264,7 @@ void spi_lld_exchange(SPIDriver *spip, size_t n,
 
   /* Enable SPI interrupts and activate transfer.*/
   SPI0_CS |=  SPI_CS_INTD | SPI_CS_INTR |  SPI_CS_TA;
+  IRQ_ENABLE2 |= BIT(22);
 }
 
 /**
@@ -297,7 +313,7 @@ void spi_lld_receive(SPIDriver *spip, size_t n, void *rxbuf) {
  * @param[in] frame     the data frame to send over the SPI bus
  * @return              The received data frame from the SPI bus.
  */
-uint16_t spi_lld_polled_exchange(SPIDriver *spip, uint8_t frame) {
+uint16_t spi_lld_polled_exchange(SPIDriver *spip, uint16_t frame) {
   UNUSED(spip);
 
   /* Clear TX and RX fifos. Start transfer.*/
@@ -309,14 +325,11 @@ uint16_t spi_lld_polled_exchange(SPIDriver *spip, uint8_t frame) {
   /* Write to FIFO.*/
   SPI0_FIFO = frame;
 
-  /* Wait for received data.*/
-  while (!(SPI0_CS & SPI_CS_RXD));
-
-  /* Read any byte that was sent back by the slave while we sere sending to it.*/
-  uint8_t rxdata = SPI0_FIFO;
-
   /* Wait for DONE to be set.*/
   while (!(SPI0_CS & SPI_CS_DONE));
+
+  /* Read any bytes that were sent back by the slave.*/
+  uint16_t rxdata = SPI0_FIFO;
 
   /* Set TA = 0.*/
   SPI0_CS &= ~SPI_CS_TA;

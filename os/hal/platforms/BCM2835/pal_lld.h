@@ -173,7 +173,7 @@ extern const PALConfig pal_default_config;
 #define pal_lld_setgroupmode(port, mask, offset, mode)                      \
   _pal_lld_setgroupmode(port, mask << offset, mode)
 
-#ifdef _cplusplus
+#ifdef __cplusplus
 extern "C" {
 #endif
 
@@ -186,7 +186,7 @@ extern "C" {
   void _pal_lld_writeport(ioportid_t port, 
   			  ioportmask_t bits);
   						  
-#ifdef _cpluscplus
+#ifdef __cplusplus
 }
 #endif
 

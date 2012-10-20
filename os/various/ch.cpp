@@ -26,6 +26,7 @@
  */
 
 #include "ch.hpp"
+#include "evtimer.h"
 
 namespace chibios_rt {
 
@@ -287,12 +288,12 @@ namespace chibios_rt {
 
   eventmask_t Event::ClearFlags(eventmask_t mask) {
 
-    return chEvtClearFlags(mask);
+    return chEvtGetAndClearEvents(mask);
   }
 
   eventmask_t Event::AddFlags(eventmask_t mask) {
 
-    return chEvtAddFlags(mask);
+    return chEvtAddEvents(mask);
   }
 
   void Event::Dispatch(const evhandler_t handlers[], eventmask_t mask) {

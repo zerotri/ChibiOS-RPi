@@ -111,6 +111,9 @@ typedef struct {
    */
   uint8_t               clock_phase;
 
+  /* @brief Clock Divider.*/
+  uint32_t              clock_divider;
+
 } SPIConfig;
 
 /**
@@ -188,7 +191,7 @@ extern "C" {
                         const void *txbuf, void *rxbuf);
   void spi_lld_send(SPIDriver *spip, size_t n, const void *txbuf);
   void spi_lld_receive(SPIDriver *spip, size_t n, void *rxbuf);
-  uint16_t spi_lld_polled_exchange(SPIDriver *spip, uint8_t frame);
+  uint16_t spi_lld_polled_exchange(SPIDriver *spip, uint16_t frame);
 
   void spi_lld_serve_interrupt(SPIDriver *spip);
 #ifdef __cplusplus

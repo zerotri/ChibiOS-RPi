@@ -5,7 +5,7 @@
 
 # Compiler options here.
 ifeq ($(USE_OPT),)
-  USE_OPT = -O2 -ggdb -fomit-frame-pointer 
+  USE_OPT = -O2 -ggdb -fomit-frame-pointer -falign-functions=16
 endif
 
 # C specific options here (added to USE_OPT).
@@ -15,7 +15,7 @@ endif
 
 # C++ specific options here (added to USE_OPT).
 ifeq ($(USE_CPPOPT),)
-  USE_CPPOPT = -fno-rtti
+  USE_CPPOPT = -fno-rtti -fno-exceptions
 endif
 
 # Enable this if you want the linker to remove unused code and data
@@ -51,7 +51,6 @@ include $(CHIBIOS)/os/hal/platforms/BCM2835/platform.mk
 include $(CHIBIOS)/os/hal/hal.mk
 include $(CHIBIOS)/os/ports/GCC/ARM/BCM2835/port.mk
 include $(CHIBIOS)/os/kernel/kernel.mk
-include $(CHIBIOS)/test/test.mk
 
 # Define linker script file here
 LDSCRIPT= $(PORTLD)/BCM2835.ld
@@ -64,13 +63,17 @@ CSRC = $(PORTSRC) \
        $(HALSRC) \
        $(PLATFORMSRC) \
        $(BOARDSRC) \
-       ${CHIBIOS}/os/various/shell.c \
-       ${CHIBIOS}/os/various/chprintf.c \
-       main.c
+       $(CHIBIOS)/os/various/evtimer.c \
+       $(CHIBIOS)/os/various/chprintf.c
+
 
 # C++ sources that can be compiled in ARM or THUMB mode depending on the global
 # setting.
-CPPSRC =
+CPPSRC = $(CHIBIOS)/os/various/ch.cpp \
+          main.cpp \
+          Adafruit_GFX.cpp \
+          Adafruit_HX8340B.cpp \
+          Print.cpp
 
 # C sources to be compiled in ARM mode regardless of the global setting.
 # NOTE: Mixing ARM and THUMB mode enables the -mthumb-interwork compiler
@@ -107,7 +110,7 @@ INCDIR = $(PORTINC) $(KERNINC) $(TESTINC) \
 # Compiler settings
 #
 
-MCU  = arm1176jz-s
+MCU  = arm7tdmi
 
 #TRGT = arm-elf-
 TRGT = arm-none-eabi-
@@ -150,9 +153,6 @@ DDEFS =
 # List all default ASM defines here, like -D_DEBUG=1
 DADEFS =
 
-# List extra objdump defines here.
-ODDEFS = -D
-
 # List all default directories to look for include files here
 DINCDIR =
 
@@ -171,12 +171,7 @@ DLIBS =
 #
 
 # List all user C define here, like -D_DEBUG=1
-ifeq ($(EXTENDED_SHELL), yes)
-UDEFS = -DEXTENDED_SHELL
-else
 UDEFS =
-endif
-
 
 # Define ASM defines here
 UADEFS =
