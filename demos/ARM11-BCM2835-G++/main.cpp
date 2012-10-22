@@ -51,6 +51,23 @@ static void tftPrintTest(Adafruit_HX8340B& display);
 
 #define delay(millis) chThdSleepMilliseconds(millis)
 
+static WORKING_AREA(waThread1, 128);
+
+static msg_t Thread1(void *p) {
+  (void)p;
+  chRegSetThreadName("backlightControl");
+  while (TRUE) {
+    uint32_t buttonState = palReadPad(GPIO4_PORT, GPIO4_PAD);
+    if (buttonState == 0) {
+      palClearPad(GPIO25_PORT, GPIO25_PAD);
+    }
+    else {
+       palSetPad(GPIO25_PORT, GPIO25_PAD);
+    }     
+  }
+  return 0;
+}
+
 /*
  * Application entry point.
  */
@@ -71,20 +88,26 @@ int main(void) {
   sdStart(&SD1, NULL);
   chprintf((BaseSequentialStream *)&SD1, "Adafruit HX8340B Demonstration (C++)\r\n");
 
+  // Use button on pin 4 to control backlight with pin 25
+  palSetPadMode(GPIO4_PORT, GPIO4_PAD, PAL_MODE_INPUT_PULLUP);
+  palSetPadMode(GPIO25_PORT, GPIO25_PAD, PAL_MODE_OUTPUT);
+  palSetPad(GPIO25_PORT, GPIO25_PAD);
+  chThdCreateStatic(waThread1, sizeof(waThread1), NORMALPRIO, Thread1, NULL);
+
   palSetPadMode(GPIO17_PORT, GPIO17_PAD, PAL_MODE_OUTPUT);
 
   palSetPad(GPIO17_PORT, GPIO17_PAD);
   chThdSleepMilliseconds(100);
   palClearPad(GPIO17_PORT, GPIO17_PAD);
-  chThdSleepMilliseconds(50);
+  chThdSleepMilliseconds(100);
   palSetPad(GPIO17_PORT, GPIO17_PAD);
   chThdSleepMilliseconds(50);
 
+  /* LCD Config.*/
   SPIConfig spiConfig;
   spiConfig.chip_select = 1;
   spiConfig.lossiEnabled = TRUE;
-  spiConfig.clock_divider = 8; // ~40 MHz
-  spiStart(&SPI0, &spiConfig);
+  spiConfig.clock_divider = 8; // ~30 MHz
 
   Adafruit_HX8340B display(&SPI0, &spiConfig);
 
@@ -92,6 +115,7 @@ int main(void) {
 
   display.fillScreen(BLACK);
 
+  display.setRotation(3);
   display.setCursor(0,0);
   display.print("Lorem ipsum dolor sit amet, consectetur adipiscing elit. Curabitur adipiscing ante sed nibh tincidunt feugiat. Maecenas enim massa");
   delay(1000);

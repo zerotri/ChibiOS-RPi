@@ -18,7 +18,6 @@
 
 #include "Adafruit_GFX.h"
 #include "Adafruit_HX8340B.h"
-#include "chprintf.h"
 
 Adafruit_HX8340B::Adafruit_HX8340B(SPIDriver *spiDriver, SPIConfig *spiConfig) 
 : spiDriver(spiDriver), spiConfig(spiConfig) {
@@ -26,14 +25,14 @@ Adafruit_HX8340B::Adafruit_HX8340B(SPIDriver *spiDriver, SPIConfig *spiConfig)
 
 void Adafruit_HX8340B::writeCommand(uint8_t c) {
   uint16_t txbuf = c;
-  spiSend(spiDriver, 2, &txbuf);
-  //spiPolledExchange(spiDriver, txbuf);
+  //spiSend(spiDriver, 2, &txbuf);
+  spiPolledExchange(spiDriver, txbuf);
 }
 
 void Adafruit_HX8340B::writeData(uint8_t c) {
   uint16_t txbuf = 0x100 | c;
-  spiSend(spiDriver, 2, &txbuf);
-  //spiPolledExchange(spiDriver, txbuf);
+  //spiSend(spiDriver, 2, &txbuf);
+  spiPolledExchange(spiDriver, txbuf);
 }
 
 // Idea swiped from 1.8" TFT code: rather than a bazillion writeCommand()
@@ -85,24 +84,23 @@ void Adafruit_HX8340B::begin() {
   // Constructor for underlying GFX library
   constructor(HX8340B_LCDWIDTH, HX8340B_LCDHEIGHT);
 
-  chprintf((BaseSequentialStream *)&SD1, "Adafruit_HX8340B::begin() w=%d, h=%d\r\n",
-	   _width, _height);
-
   spiBegin();
 
   // Companion code to the above tables.  Reads and issues
-  // a series of LCD commands stored in PROGMEM byte array.
+  // a series of LCD commands stored in a byte array.
   uint8_t  numCommands, numArgs;
   uint16_t ms;
   uint8_t *addr = initCmd;
   numCommands = *(addr++);   // Number of commands to follow
   while(numCommands--) {                 // For each command...
-    writeCommand(*(addr++)); //   Read, issue command
+    uint8_t cmd = *(addr++);
+    writeCommand(cmd); //   Read, issue command
     numArgs  = *(addr++);    //   Number of args to follow
     ms       = numArgs & DELAY;          //   If hibit set, delay follows args
     numArgs &= ~DELAY;                   //   Mask out delay bit
     while(numArgs--) {                   //   For each argument...
-      writeData(*(addr++));  //     Read, issue argument
+      uint8_t arg = *(addr++);
+      writeData(arg);  //     Read, issue argument
     }
 
     if(ms) chThdSleepMilliseconds(*(addr++)); // Read post-command delay time (ms)
@@ -118,8 +116,8 @@ bool_t Adafruit_HX8340B::spiBegin()
   }
 
   spiAcquireBus(spiDriver);
-  spiStart(spiDriver, spiConfig);
   spiSelect(spiDriver);
+  spiStart(spiDriver, spiConfig);
 
   return TRUE;
 }

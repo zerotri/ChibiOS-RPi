@@ -175,6 +175,12 @@ void mini_uart_send ( uint32_t c )
   AUX_MU_IO_REG = c;
 }
 
+void mini_uart_sendstr (const char *s)
+{
+  char c;
+  while((c = *s++)) mini_uart_send(c);
+}
+
 void mini_uart_sendhex ( uint32_t d, bool_t newline )
 {
   uint32_t rb;

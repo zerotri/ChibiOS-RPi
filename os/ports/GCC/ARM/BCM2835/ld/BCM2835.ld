@@ -19,7 +19,7 @@
 */
 
 /*
- * AT91SAM7S256 memory setup.
+ * BCM2835 memory setup.
  */
 __und_stack_size__	= 0x0004;
 __abt_stack_size__	= 0x0004;
