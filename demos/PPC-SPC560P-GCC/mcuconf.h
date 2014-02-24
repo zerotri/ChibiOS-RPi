@@ -1,21 +1,17 @@
 /*
-    ChibiOS/RT - Copyright (C) 2006,2007,2008,2009,2010,
-                 2011,2012 Giovanni Di Sirio.
+    SPC5 HAL - Copyright (C) 2013 STMicroelectronics
 
-    This file is part of ChibiOS/RT.
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
 
-    ChibiOS/RT is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 3 of the License, or
-    (at your option) any later version.
+        http://www.apache.org/licenses/LICENSE-2.0
 
-    ChibiOS/RT is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
 */
 
 /*
@@ -27,6 +23,8 @@
  *
  * IRQ priorities:
  * 1...15       Lowest...Highest.
+ * DMA priorities:
+ * 0...15       Highest...Lowest.
  */
 
 #define SPC560Pxx_MCUCONF
@@ -36,12 +34,20 @@
  */
 #define SPC5_NO_INIT                        FALSE
 #define SPC5_ALLOW_OVERCLOCK                FALSE
+#define SPC5_DISABLE_WATCHDOG               TRUE
 #define SPC5_FMPLL0_IDF_VALUE               5
 #define SPC5_FMPLL0_NDIV_VALUE              32
 #define SPC5_FMPLL0_ODF                     SPC5_FMPLL_ODF_DIV4
 #define SPC5_FMPLL1_IDF_VALUE               5
 #define SPC5_FMPLL1_NDIV_VALUE              60
 #define SPC5_FMPLL1_ODF                     SPC5_FMPLL_ODF_DIV4
+#define SPC5_AUX0CLK_SRC                    SPC5_CGM_SS_FMPLL1
+#define SPC5_MCONTROL_DIVIDER_VALUE         2
+#define SPC5_FMPLL1_CLK_DIVIDER_VALUE       2
+#define SPC5_AUX2CLK_SRC                    SPC5_CGM_SS_FMPLL1
+#define SPC5_SP_CLK_DIVIDER_VALUE           2
+#define SPC5_AUX3CLK_SRC                    SPC5_CGM_SS_FMPLL1
+#define SPC5_FR_CLK_DIVIDER_VALUE           2
 #define SPC5_ME_ME_BITS                     (SPC5_ME_ME_RUN1 |              \
                                              SPC5_ME_ME_RUN2 |              \
                                              SPC5_ME_ME_RUN3 |              \
@@ -140,7 +146,17 @@
                                              SPC5_ME_LP_PC_STOP0)
 #define SPC5_ME_LP_PC7_BITS                 (SPC5_ME_LP_PC_HALT0 |          \
                                              SPC5_ME_LP_PC_STOP0)
-#define SPC5_PIT3_IRQ_PRIORITY              4
+#define SPC5_PIT0_IRQ_PRIORITY              4
+#define SPC5_CLOCK_FAILURE_HOOK()           chSysHalt()
+
+/*
+ * EDMA driver settings.
+ */
+#define SPC5_EDMA_CR_SETTING                0
+#define SPC5_EDMA_GROUP0_PRIORITIES                                         \
+  0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15
+#define SPC5_EDMA_ERROR_IRQ_PRIO            12
+#define SPC5_EDMA_ERROR_HANDLER()           chSysHalt()
 
 /*
  * SERIAL driver system settings.
@@ -156,4 +172,99 @@
 #define SPC5_SERIAL_LINFLEX1_START_PCTL     (SPC5_ME_PCTL_RUN(1) |          \
                                              SPC5_ME_PCTL_LP(2))
 #define SPC5_SERIAL_LINFLEX1_STOP_PCTL      (SPC5_ME_PCTL_RUN(0) |          \
+                                             SPC5_ME_PCTL_LP(0))
+
+/*
+ * SPI driver system settings.
+ */
+#define SPC5_SPI_USE_DSPI0                  TRUE
+#define SPC5_SPI_USE_DSPI1                  TRUE
+#define SPC5_SPI_USE_DSPI2                  TRUE
+#define SPC5_SPI_USE_DSPI3                  TRUE
+#define SPC5_SPI_USE_DSPI4                  FALSE
+#define SPC5_SPI_DSPI0_MCR                  (SPC5_MCR_PCSIS0 |              \
+                                             SPC5_MCR_PCSIS1 |              \
+                                             SPC5_MCR_PCSIS2 |              \
+                                             SPC5_MCR_PCSIS3 |              \
+                                             SPC5_MCR_PCSIS4 |              \
+                                             SPC5_MCR_PCSIS5 |              \
+                                             SPC5_MCR_PCSIS6 |              \
+                                             SPC5_MCR_PCSIS7)
+#define SPC5_SPI_DSPI1_MCR                  (SPC5_MCR_PCSIS0 |              \
+                                             SPC5_MCR_PCSIS1 |              \
+                                             SPC5_MCR_PCSIS2 |              \
+                                             SPC5_MCR_PCSIS3 |              \
+                                             SPC5_MCR_PCSIS4 |              \
+                                             SPC5_MCR_PCSIS5 |              \
+                                             SPC5_MCR_PCSIS6 |              \
+                                             SPC5_MCR_PCSIS7)
+#define SPC5_SPI_DSPI2_MCR                  (SPC5_MCR_PCSIS0 |              \
+                                             SPC5_MCR_PCSIS1 |              \
+                                             SPC5_MCR_PCSIS2 |              \
+                                             SPC5_MCR_PCSIS3 |              \
+                                             SPC5_MCR_PCSIS4 |              \
+                                             SPC5_MCR_PCSIS5 |              \
+                                             SPC5_MCR_PCSIS6 |              \
+                                             SPC5_MCR_PCSIS7)
+#define SPC5_SPI_DSPI3_MCR                  (SPC5_MCR_PCSIS0 |              \
+                                             SPC5_MCR_PCSIS1 |              \
+                                             SPC5_MCR_PCSIS2 |              \
+                                             SPC5_MCR_PCSIS3 |              \
+                                             SPC5_MCR_PCSIS4 |              \
+                                             SPC5_MCR_PCSIS5 |              \
+                                             SPC5_MCR_PCSIS6 |              \
+                                             SPC5_MCR_PCSIS7)
+#define SPC5_SPI_DSPI4_MCR                  (SPC5_MCR_PCSIS0 |              \
+                                             SPC5_MCR_PCSIS1 |              \
+                                             SPC5_MCR_PCSIS2 |              \
+                                             SPC5_MCR_PCSIS3 |              \
+                                             SPC5_MCR_PCSIS4 |              \
+                                             SPC5_MCR_PCSIS5 |              \
+                                             SPC5_MCR_PCSIS6 |              \
+                                             SPC5_MCR_PCSIS7)
+#define SPC5_SPI_DSPI0_TX1_DMA_CH_ID        4
+#define SPC5_SPI_DSPI0_TX2_DMA_CH_ID        5
+#define SPC5_SPI_DSPI0_RX_DMA_CH_ID         6
+#define SPC5_SPI_DSPI1_TX1_DMA_CH_ID        7
+#define SPC5_SPI_DSPI1_TX2_DMA_CH_ID        8
+#define SPC5_SPI_DSPI1_RX_DMA_CH_ID         9
+#define SPC5_SPI_DSPI2_TX1_DMA_CH_ID        10
+#define SPC5_SPI_DSPI2_TX2_DMA_CH_ID        11
+#define SPC5_SPI_DSPI2_RX_DMA_CH_ID         12
+#define SPC5_SPI_DSPI3_TX1_DMA_CH_ID        13
+#define SPC5_SPI_DSPI3_TX2_DMA_CH_ID        14
+#define SPC5_SPI_DSPI3_RX_DMA_CH_ID         15
+#define SPC5_SPI_DSPI4_TX1_DMA_CH_ID        1
+#define SPC5_SPI_DSPI4_TX2_DMA_CH_ID        2
+#define SPC5_SPI_DSPI4_RX_DMA_CH_ID         3
+#define SPC5_SPI_DSPI0_DMA_IRQ_PRIO         10
+#define SPC5_SPI_DSPI1_DMA_IRQ_PRIO         10
+#define SPC5_SPI_DSPI2_DMA_IRQ_PRIO         10
+#define SPC5_SPI_DSPI3_DMA_IRQ_PRIO         10
+#define SPC5_SPI_DSPI4_DMA_IRQ_PRIO         10
+#define SPC5_SPI_DSPI0_IRQ_PRIO             10
+#define SPC5_SPI_DSPI1_IRQ_PRIO             10
+#define SPC5_SPI_DSPI2_IRQ_PRIO             10
+#define SPC5_SPI_DSPI3_IRQ_PRIO             10
+#define SPC5_SPI_DSPI4_IRQ_PRIO             10
+#define SPC5_SPI_DMA_ERROR_HOOK(spip)       chSysHalt()
+#define SPC5_SPI_DSPI0_START_PCTL           (SPC5_ME_PCTL_RUN(1) |          \
+                                             SPC5_ME_PCTL_LP(2))
+#define SPC5_SPI_DSPI0_STOP_PCTL            (SPC5_ME_PCTL_RUN(0) |          \
+                                             SPC5_ME_PCTL_LP(0))
+#define SPC5_SPI_DSPI1_START_PCTL           (SPC5_ME_PCTL_RUN(1) |          \
+                                             SPC5_ME_PCTL_LP(2))
+#define SPC5_SPI_DSPI1_STOP_PCTL            (SPC5_ME_PCTL_RUN(0) |          \
+                                             SPC5_ME_PCTL_LP(0))
+#define SPC5_SPI_DSPI2_START_PCTL           (SPC5_ME_PCTL_RUN(1) |          \
+                                             SPC5_ME_PCTL_LP(2))
+#define SPC5_SPI_DSPI2_STOP_PCTL            (SPC5_ME_PCTL_RUN(0) |          \
+                                             SPC5_ME_PCTL_LP(0))
+#define SPC5_SPI_DSPI3_START_PCTL           (SPC5_ME_PCTL_RUN(1) |          \
+                                             SPC5_ME_PCTL_LP(2))
+#define SPC5_SPI_DSPI3_STOP_PCTL            (SPC5_ME_PCTL_RUN(0) |          \
+                                             SPC5_ME_PCTL_LP(0))
+#define SPC5_SPI_DSPI4_START_PCTL           (SPC5_ME_PCTL_RUN(1) |          \
+                                             SPC5_ME_PCTL_LP(2))
+#define SPC5_SPI_DSPI4_STOP_PCTL            (SPC5_ME_PCTL_RUN(0) |          \
                                              SPC5_ME_PCTL_LP(0))

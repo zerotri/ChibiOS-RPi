@@ -1,6 +1,6 @@
 /*
     ChibiOS/RT - Copyright (C) 2006,2007,2008,2009,2010,
-                 2011,2012 Giovanni Di Sirio.
+                 2011,2012,2013 Giovanni Di Sirio.
 
     This file is part of ChibiOS/RT.
 
@@ -140,8 +140,10 @@ typedef void (*icucallback_t)(ICUDriver *icup);
  * @notapi
  */
 #define _icu_isr_invoke_width_cb(icup) {                                    \
-  (icup)->state = ICU_IDLE;                                                 \
-  (icup)->config->width_cb(icup);                                           \
+  if ((icup)->state != ICU_WAITING) {                                       \
+    (icup)->state = ICU_IDLE;                                               \
+    (icup)->config->width_cb(icup);                                         \
+  }                                                                         \
 }
 
 /**

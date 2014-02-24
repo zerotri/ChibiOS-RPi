@@ -1,6 +1,6 @@
 /*
     ChibiOS/RT - Copyright (C) 2006,2007,2008,2009,2010,
-                 2011,2012 Giovanni Di Sirio.
+                 2011,2012,2013 Giovanni Di Sirio.
 
     This file is part of ChibiOS/RT.
 
@@ -155,6 +155,7 @@
 #define MII_KS8721_ID     0x00221610
 #define MII_STE101P_ID    0x00061C50
 #define MII_DP83848I_ID   0x20005C90
+#define MII_LAN8710A_ID   0x0007C0F1
 
 #endif /* _MII_H_ */
 

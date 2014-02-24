@@ -8,7 +8,8 @@ ifeq ($(BUILDDIR),.)
   BUILDDIR = build
 endif
 OUTFILES = $(BUILDDIR)/$(PROJECT).elf $(BUILDDIR)/$(PROJECT).hex \
-           $(BUILDDIR)/$(PROJECT).bin $(BUILDDIR)/$(PROJECT).dmp
+           $(BUILDDIR)/$(PROJECT).mot $(BUILDDIR)/$(PROJECT).bin \
+           $(BUILDDIR)/$(PROJECT).dmp
 
 # Automatic compiler options
 OPT = $(USE_OPT)
@@ -62,10 +63,16 @@ ASXFLAGS  = $(MCFLAGS) -Wa,-amhls=$(LSTDIR)/$(notdir $(<:.S=.lst)) $(ADEFS)
 CFLAGS    = $(MCFLAGS) $(OPT) $(COPT) $(CWARN) -Wa,-alms=$(LSTDIR)/$(notdir $(<:.c=.lst)) $(DEFS)
 CPPFLAGS  = $(MCFLAGS) $(OPT) $(CPPOPT) $(CPPWARN) -Wa,-alms=$(LSTDIR)/$(notdir $(<:.cpp=.lst)) $(DEFS)
 ifeq ($(USE_LINK_GC),yes)
-  LDFLAGS = $(MCFLAGS) -nostartfiles -T$(LDSCRIPT) -Wl,-Map=$(BUILDDIR)/$(PROJECT).map,--cref,--no-warn-mismatch,--gc-sections $(LLIBDIR)
+GCLDFLAGS = ,--gc-sections
 else
-  LDFLAGS = $(MCFLAGS) -nostartfiles -T$(LDSCRIPT) -Wl,-Map=$(BUILDDIR)/$(PROJECT).map,--cref,--no-warn-mismatch $(LLIBDIR)
+GCLDFLAGS =
 endif
+ifneq ($(USE_LDOPT),)
+XLDFLAGS  =,$(USE_LDOPT)
+else
+XLDFLAGS  =
+endif
+LDFLAGS = $(MCFLAGS) -nostartfiles -T$(LDSCRIPT) -Wl,-Map=$(BUILDDIR)/$(PROJECT).map,--cref,--no-warn-mismatch$(GCLDFLAGS)$(XLDFLAGS) $(LLIBDIR)
 
 # Generate dependency information
 CFLAGS   += -MD -MP -MF .dep/$(@F).d
@@ -98,7 +105,7 @@ ifeq ($(USE_VERBOSE_COMPILE),yes)
 	@echo
 	$(CPPC) -c $(CPPFLAGS) -I. $(IINCDIR) $< -o $@
 else
-	@echo Compiling $<
+	@echo Compiling $(<F)
 	@$(CPPC) -c $(CPPFLAGS) -I. $(IINCDIR) $< -o $@
 endif
 
@@ -107,7 +114,7 @@ ifeq ($(USE_VERBOSE_COMPILE),yes)
 	@echo
 	$(CC) -c $(CFLAGS) -I. $(IINCDIR) $< -o $@
 else
-	@echo Compiling $<
+	@echo Compiling $(<F)
 	@$(CC) -c $(CFLAGS) -I. $(IINCDIR) $< -o $@
 endif
 
@@ -116,7 +123,7 @@ ifeq ($(USE_VERBOSE_COMPILE),yes)
 	@echo
 	$(AS) -c $(ASFLAGS) -I. $(IINCDIR) $< -o $@
 else
-	@echo Compiling $<
+	@echo Compiling $(<F)
 	@$(AS) -c $(ASFLAGS) -I. $(IINCDIR) $< -o $@
 endif
 
@@ -125,7 +132,7 @@ ifeq ($(USE_VERBOSE_COMPILE),yes)
 	@echo 
 	$(CC) -c $(ASXFLAGS) -I. $(IINCDIR) $< -o $@
 else
-	@echo Compiling $<
+	@echo Compiling $(<F)
 	@$(CC) -c $(ASXFLAGS) -I. $(IINCDIR) $< -o $@
 endif
 
@@ -146,6 +153,14 @@ else
 	@$(HEX) $< $@
 endif
 
+%.mot: %.elf $(LDSCRIPT)
+ifeq ($(USE_VERBOSE_COMPILE),yes)
+	$(MOT) $< $@
+else
+	@echo Creating $@
+	@$(MOT) $< $@
+endif
+
 %.bin: %.elf $(LDSCRIPT)
 ifeq ($(USE_VERBOSE_COMPILE),yes)
 	$(BIN) $< $@
@@ -160,12 +175,16 @@ ifeq ($(USE_VERBOSE_COMPILE),yes)
 else
 	@echo Creating $@
 	@$(OD) $(ODFLAGS) $< > $@
+	@echo
+	@$(SZ) $<
+	@echo
 	@echo Done
 endif
 
 clean:
 	@echo Cleaning
 	-rm -fR .dep $(BUILDDIR)
+	@echo
 	@echo Done
 
 #

@@ -2,86 +2,353 @@
 *** Files Organization                                                    ***
 *****************************************************************************
 
---{root}                - ChibiOS/RT directory.
-  +--readme.txt         - This file.
-  +--documentation.html - Shortcut to the web documentation page.
-  +--todo.txt           - Current plan (development/unstable versions only).
-  +--license.txt        - GPL license text.
-  +--exception.txt      - GPL exception text (stable releases only).
-  +--boards/            - Board support files.
-  +--demos/             - Demo projects.
-  +--docs/              - Documentation.
-  |  +--html/           - Local HTML documentation (after rebuild).
-  |  +--reports/        - Test reports.
-  |  +--src/            - Documentation source files (required for rebuild).
-  |  +--rsc/            - Documentation resource files (required for rebuild).
-  |  +--Doxyfile        - Doxygen project file (required for rebuild).
-  |  +--index.html      - Local documentation access (after rebuild).
-  +--ext/               - External libraries, not part of ChibiOS/RT.
-  +--os/                - ChibiOS/RT files.
-  |  +--hal/            - Hardware Abstraction Layer.
-  |  |  +--include/     - HAL high level headers.
-  |  |  +--src/         - HAL high level source.
-  |  |  +--platforms/   - HAL low level drivers implementations.
-  |  |  |  +--AT91SAM7/ - Drivers for AT91SAM7 platform.
-  |  |  |  +--AVR/      - Drivers for AVR platform.
-  |  |  |  +--LPC11Uxx/ - Drivers for LPC11Uxx platform.
-  |  |  |  +--LPC11xx/  - Drivers for LPC11xx platform.
-  |  |  |  +--LPC13xx/  - Drivers for LPC13xx platform.
-  |  |  |  +--LPC214x/  - Drivers for LPC214x platform.
-  |  |  |  +--MSP430/   - Drivers for MSP430 platform.
-  |  |  |  +--SPC56x/   - Drivers for SPC56x/MPC563xx platforms.
-  |  |  |  +--STM32/    - Drivers for STM32 platform (common).
-  |  |  |  +--STM32F0xx/- Drivers for STM32F0xx platform.
-  |  |  |  +--STM32F1xx/- Drivers for STM32F1xx platform.
-  |  |  |  +--STM32F4xx/- Drivers for STM32F4xx/STM32F2xx platforms.
-  |  |  |  +--STM32L1xx/- Drivers for STM32L1xx platform.
-  |  |  |  +--STM8L/    - Drivers for STM8L platform.
-  |  |  |  +--STM8S/    - Drivers for STM8S platform.
-  |  |  |  +--Posix/    - Drivers for x86 Linux/OSX simulator platform.
-  |  |  |  +--Win32/    - Drivers for x86 Win32 simulator platform.
-  |  |  +--templates/   - Driver template files.
-  |  |     +--meta/     - Driver meta templates.
-  |  +--ports/          - Port files for the various architectures.
-  |  |  +--GCC/         - Ports for the GCC compiler.
-  |  |  |  +--ARM/      - Port files for ARM7 and ARM9 architectures.
-  |  |  |  +--ARMCMx/   - Port files for ARMCMx architectures (ARMv6/7-M).
-  |  |  |  +--PPC/      - Port files for PowerPC architecture.
-  |  |  |  +--AVR/      - Port files for AVR architecture.
-  |  |  |  +--MSP430/   - Port files for MSP430 architecture.
-  |  |  |  +--SIMIA32/  - Port files for SIMIA32 simulator architecture.
-  |  |  +--IAR/         - Ports for the IAR compiler.
-  |  |  |  +--ARMCMx/   - Port files for ARMCMx architectures (ARMv6/7-M).
-  |  |  |  +--STM8/     - Port files for STM8 architecture.
-  |  |  +--RVCT/        - Ports for the Keil RVCT compiler.
-  |  |  |  +--ARMCMx/   - Port files for ARMCMx architectures (ARMv6/7-M).
-  |  |  +--cosmic/      - Ports for the Cosmic compiler.
-  |  |  |  +--STM8/     - Port files for STM8 architecture.
-  |  |  +--RC/          - Ports for the Raisonance compiler.
-  |  |     +--STM8/     - Port files for STM8 architecture.
-  |  +--kernel/         - Kernel portable files.
-  |  |  +--include/     - Kernel headers.
-  |  |  +--src/         - Kernel source.
-  |  |  +--templates/   - Kernel port template files.
-  |  +--various/        - Various portable support files.
-  +--test/              - Kernel test suite source code.
-  |  +--coverage/       - Code coverage project.
-  +--testhal/           - HAL integration test demos.
-  |  +--LPC11xx/        - LPC11xx HAL demos.
-  |  +--LPC13xx/        - LPC11xx HAL demos.
-  |  +--STM32F1xx/      - STM32F1xx HAL demos.
-  |  +--STM32F4xx/      - STM32F4xx HAL demos (valid for STM32F2xx too).
-  |  +--STM32L1xx/      - STM32L1xx HAL demos.
-  |  +--STM8S/          - STM8S HAL demos.
-  +--tools              - Various tools.
-     +--eclipse         - Eclipse enhancements.
-     +--gencfg          - Configurations generator tool.
+--{root}                  - ChibiOS/RT directory.
+  +--readme.txt           - This file.
+  +--documentation.html   - Shortcut to the web documentation page.
+  +--todo.txt             - Current plan (development/unstable versions only).
+  +--license.txt          - GPL license text.
+  +--exception.txt        - GPL exception text (stable releases only).
+  +--boards/              - Board support files.
+  +--demos/               - Demo projects.
+  +--docs/                - Documentation.
+  |  +--html/             - Local HTML documentation (after rebuild).
+  |  +--reports/          - Test reports.
+  |  +--src/              - Documentation source files (required for rebuild).
+  |  +--rsc/              - Documentation resource files (required for rebuild).
+  |  +--Doxyfile          - Doxygen project file (required for rebuild).
+  |  +--index.html        - Local documentation access (after rebuild).
+  +--ext/                 - External libraries, not part of ChibiOS/RT.
+  +--os/                  - ChibiOS/RT files.
+  |  +--hal/              - Hardware Abstraction Layer.
+  |  |  +--include/       - HAL high level headers.
+  |  |  +--src/           - HAL high level source.
+  |  |  +--platforms/     - HAL low level drivers implementations.
+  |  |  |  +--AT91SAM7/   - Drivers for AT91SAM7 platform.
+  |  |  |  +--AVR/        - Drivers for AVR platform.
+  |  |  |  +--LPC11Uxx/   - Drivers for LPC11Uxx platform.
+  |  |  |  +--LPC11xx/    - Drivers for LPC11xx platform.
+  |  |  |  +--LPC13xx/    - Drivers for LPC13xx platform.
+  |  |  |  +--LPC214x/    - Drivers for LPC214x platform.
+  |  |  |  +--LPC8xx/     - Drivers for LPC8xx platform.
+  |  |  |  +--MSP430/     - Drivers for MSP430 platform.
+  |  |  |  +--SPC5xx/     - Drivers for all SPC5xx platform (common).
+  |  |  |  +--SPC560BCxx/ - Drivers for SPC560BCxx platform.
+  |  |  |  +--SPC560Pxx/  - Drivers for SPC560Pxx platform.
+  |  |  |  +--SPC563Mxx/  - Drivers for SPC563Mxx platform.
+  |  |  |  +--SPC564Axx/  - Drivers for SPC564Axx platform.
+  |  |  |  +--SPC5ELxx/   - Drivers for SPC56ELxx platform.
+  |  |  |  +--STM32/      - Drivers for STM32 platform (common).
+  |  |  |  +--STM32F0xx/  - Drivers for STM32F0xx platform.
+  |  |  |  +--STM32F1xx/  - Drivers for STM32F1xx platform.
+  |  |  |  +--STM32F30x/  - Drivers for STM32F30x platform.
+  |  |  |  +--STM32F37x/  - Drivers for STM32F37x platform.
+  |  |  |  +--STM32F4xx/  - Drivers for STM32F4xx/STM32F2xx platforms.
+  |  |  |  +--STM32L1xx/  - Drivers for STM32L1xx platform.
+  |  |  |  +--STM8L/      - Drivers for STM8L platform.
+  |  |  |  +--STM8S/      - Drivers for STM8S platform.
+  |  |  |  +--Posix/      - Drivers for x86 Linux/OSX simulator platform.
+  |  |  |  +--Win32/      - Drivers for x86 Win32 simulator platform.
+  |  |  +--templates/     - Driver template files.
+  |  |     +--meta/       - Driver meta templates.
+  |  +--ports/            - Port files for the various architectures.
+  |  |  +--GCC/           - Ports for the GCC compiler.
+  |  |  |  +--ARM/        - Port files for ARM7 and ARM9 architectures.
+  |  |  |  +--ARMCMx/     - Port files for ARMCMx architectures (ARMv6/7-M).
+  |  |  |  +--PPC/        - Port files for PowerPC architecture.
+  |  |  |  +--AVR/        - Port files for AVR architecture.
+  |  |  |  +--MSP430/     - Port files for MSP430 architecture.
+  |  |  |  +--SIMIA32/    - Port files for SIMIA32 simulator architecture.
+  |  |  +--IAR/           - Ports for the IAR compiler.
+  |  |  |  +--ARMCMx/     - Port files for ARMCMx architectures (ARMv6/7-M).
+  |  |  |  +--STM8/       - Port files for STM8 architecture.
+  |  |  +--RVCT/          - Ports for the Keil RVCT compiler.
+  |  |  |  +--ARMCMx/     - Port files for ARMCMx architectures (ARMv6/7-M).
+  |  |  +--cosmic/        - Ports for the Cosmic compiler.
+  |  |  |  +--STM8/       - Port files for STM8 architecture.
+  |  |  +--RC/            - Ports for the Raisonance compiler.
+  |  |     +--STM8/       - Port files for STM8 architecture.
+  |  +--kernel/           - Kernel portable files.
+  |  |  +--include/       - Kernel headers.
+  |  |  +--src/           - Kernel source.
+  |  |  +--templates/     - Kernel port template files.
+  |  +--various/          - Various portable support files.
+  +--test/                - Kernel test suite source code.
+  |  +--coverage/         - Code coverage project.
+  +--testhal/             - HAL integration test demos.
+  |  +--LPC11xx/          - LPC11xx HAL demos.
+  |  +--LPC13xx/          - LPC11xx HAL demos.
+  |  +--STM32F1xx/        - STM32F1xx HAL demos.
+  |  +--STM32F4xx/        - STM32F4xx HAL demos (valid for STM32F2xx too).
+  |  +--STM32L1xx/        - STM32L1xx HAL demos.
+  |  +--STM8S/            - STM8S HAL demos.
+  +--tools                - Various tools.
+     +--eclipse           - Eclipse enhancements.
 
 *****************************************************************************
 *** Releases                                                              ***
 *****************************************************************************
 
+*** 2.7.0 ***
+- FIX: Fixed TM32 SDC driver clock activation issue (bug #464)(backported to
+  2.6.3).
+- FIX: Fixed spurious callback in ICU driver (bug #461)(backported to 2.6.3
+  and 2.4.6).
+- FIX: Fixed compile error in STM32F0xx ADC driver when STM32F0XX_LD devices
+  are selected (bug #460)(backported to 2.6.3).
+- FIX: Fixed race condition in STM32 SDC driver (bug #458)(backported
+  to 2.6.3).
+- FIX: Fixed race condition in STM32 OTG driver (bug #457)(backported
+  to 2.6.3).
+- FIX: Fixed switch to LAN8710A PHY for STM32-E407 boards (bug #456)
+  (backported to 2.6.3).
+- FIX: Fixed add PHY id of LAN8710A (bug #455)(backported to 2.6.3).
+- FIX: Fixed memstreams.c missing from simulator makefiles (bug #454)
+  (backported to 2.6.3).
+- FIX: Fixed chprintf() does not compile in strict C90 mode (bug #453)
+  (backported to 2.6.3).
+- FIX: Fixed wrong vector names for STM32Lxx (bug #451)(backported
+  to 2.4.6 and 2.6.2).
+- FIX: Fixed wrong STM32_TIM_CCMR2_OCxM macros on STM32F30x (bug #449)
+  (backported to 2.6.2).
+- FIX: Fixed STM32F30x TIM1/TIM8 alternate clock source setting not
+  recognized (bug #448)(backported to 2.6.2).
+- FIX: Fixed wrong MCO2 check in STM32F4xx HAL driver (bug #447)(backported
+  to 2.4.6 and 2.6.2).
+- FIX: Fixed spurious half buffer callback in STM32 ADC drivers (bug #446)
+  (backported to 2.4.6 and 2.6.2).
+- FIX: Fixed callbacks changes to the ADC high level driver (bug #445)
+  (backported to 2.4.6 and 2.6.2).
+- FIX: Fixed wrong definition in STM32F37x ADC driver (bug #444)(backported
+  to 2.6.2).
+- FIX: Fixed wrong CORTEX_PRIORITY_PENDSV value (bug #443)(backported to
+  2.4.6 and 2.6.2).
+- FIX: Fixed lost incoming characters in STM32 USARTv1 driver (bug #442)
+  (backported to 2.4.6 and 2.6.2).
+- FIX: Fixed UART4/5-related bugs in STM32 USARTv1 UART driver (bug #440)
+  (backported to 2.6.2).
+- FIX: Fixed race condition in STM32 DMA interrupt (bug #439)(backported
+  to 2.6.2).
+- FIX: Fixed STM32 OTG-FS wrong upper memory limit (bug #437)(backported
+  to 2.6.2).
+- FIX: Fixed timing issue in the STM32 OTGv1 USB driver (bug #436)(backported
+  to 2.6.2).
+- FIX: Fixed STM32L1 remove reset flag (bug #435)(backported to 2.6.2).
+- FIX: Fixed unaligned data access in USB LLD (bug #434)(backported to 2.6.2).
+- FIX: Fixed add RTC to STM32L1 (bug #433)(backported to 2.6.2).
+- FIX: Fixed support 10-bit addresses in STM32 I2C driver (bug #432)
+  (backported to 2.6.2).
+- FIX: Fixed possible unalignment in GCC Cortex-M scatter files (bug #430)
+  (backported to 2.6.2 and 2.4.6).
+- FIX: Fixed PAL driver documentation error (bug #427)(backported to 2.6.1
+  and 2.4.5).
+- FIX: Fixed UART4 and 5 marked as not present in STM32F30x devices (bug #426)
+  (backported to 2.6.1).
+- FIX: Fixed warning in STM32 ICU/PWM drivers when used on STM32F3xx
+  (bug #425)(backported to 2.6.1).
+- FIX: Fixed conditional code error in STM32 PWM driver (bug #424)(backported
+  to 2.6.1).
+- FIX: Fixed error in Guards of pwm_lld.h from STM32 (bug #423)(backported to
+  2.6.1).
+- FIX: Fixed wrong RTC macro names in STM32L1xx HAL (bug #422)(backported to
+  2.6.1 and 2.4.5).
+- FIX: Fixed CodeSourcery personal version fails to build with undefined
+  errno_r (bug #421)(backported to 2.6.1).
+- FIX: Fixed FSMC reset on STM32F4xx (bug #420)(backported to 2.6.1 and 2.4.4).
+- FIX: Fixed invalid directory links in the demo files (bug #419)(backported
+  to 2.6.1).
+- FIX: Fixed missing casts in time-conversion macros (bug #418)(backported
+  to 2.6.1, 2.4.4 and 2.2.10).
+- FIX: Fixed PLL2 activation condition is wrong in STM32F107 HAL (bug #417)
+  (backported to 2.6.1 and 2.4.4).
+- FIX: Fixed STM32 Serial (v2) driver invalid CR registers size (bug #416)
+  (backported to 2.6.0).
+- FIX: Fixed MS2ST() and US2ST() macros error (bug #415)(backported to 2.6.0,
+  2.4.4, 2.2.10, NilRTOS).
+- NEW: Added support for STM32F030xx/050xx/060xx devices.
+- NEW: Added BOARD_OTG_NOVBUSSENS board option for STM32 OTG.
+- NEW: Added SPI4/SPI5/SPI6 support to the STM32v1 SPIv1 low level driver.
+- NEW: Added chvprintf() and chsnprintf() functions to the chprintf module.
+- NEW: Improved time range check in the kernel, new API chTimeElapsedSince()
+  introduced. The API chTimeIsWithin() is now a macro.
+- NEW: Added a new function shellExit() to the shell. It allows to exit the
+  shell from any command handler.
+- NEW: Added support for STM32F401/STM32F42x/STM32F43x devices.
+- NEW: Added support for STM32F0xx platform in RTCv2 driver.
+- NEW: Improvements to the STM32F4xx backup domain initialization.
+- NEW: Added initializer for the DIER register to the STM32 GPT, ICU and
+  PWM drivers.
+- NEW: Added support for 32bits counters to the STM32 GPT driver.
+- NEW: Added support for STM32F4xx backup RAM.
+- NEW: Added port support for SCP560B64.
+- NEW: Added DAC driver high level files and low level files templates.
+- NEW: Added support of UART4 and UART5 (STM32F4xx and STM32F2xx platforms)
+  (feature request #28).
+- NEW: SPI driver for SPC560Pxx, SPC563Mxx, SPC564Axx, SPC56ELAxx, SPC560Dxx.
+- NEW: Support for SPC560Dxx devices.
+- NEW: DMA-MUX support for SPC5xx devices.
+- NEW: Added CAN driver for AT91SAM7.
+- CHANGE: Moved the STM32 GPT, ICU and PWM low level drivers under
+  ./os/hal/platform/STM32/TIMv1. Updated all the impacted project files.
+
+*** 2.5.2 ***
+- FIX: Fixed lwipthread.h should explicitly include lwip/opts.h (bug #414).
+- FIX: Fixed STM32_PLLI2SCLKOUT miscalculated (bug #413)(backported to 2.4.4).
+- FIX: Fixed wrong RTC vector name in STM32F1/F4/L1 EXT drivers (bug #412).
+- FIX: Fixed fill character error in chprintf (bug #411).
+- FIX: Fixed wrong STM32 USBv1 driver behavior (bug #410).
+- FIX: Fixed STM32 wrong peripherals reset procedure (bug #409)(backported
+  to 2.4.4).
+- FIX: Fixed STM32 SPIv2 polled exchange (bug #372).
+- FIX: Fixed wrong macro in PWM driver (bug #407)(backported to 2.4.4).
+- FIX: Fixed USB driver possible deadlock under certain configurations (bug
+  #406)(backported to 2.4.4).
+- FIX: Fixed USB driver cannot be stopped (bug #405)(backported to 2.4.4).
+- FIX: Fixed several spelling errors (bug #404).
+- FIX: Fixed serial port in STM32F3 discovery test case (bug #402).
+- FIX: Fixed add %i to chprintf (bug #401).
+- FIX: Fixed STM32F051 various (bug #400).
+- FIX: Fixed STM32F103 HSI configuration (bug #399).
+- FIX: Fixed patch to allow simulator to be restarted quicker (bug #398).
+- FIX: Fixed blkDisconnect macro typo (bug #397).
+- FIX: Fixed STM32 SPI (V2) driver hangs (bug 3608241).
+- FIX: Fixed fixed I2C malfunction after fixing bug 3607518 (bug 3607549)
+  (backported to 2.4.4).
+- FIX: Fixed spurious interrupt disabling an STM32 DMA stream (bug 3607518)
+  (backported to 2.4.4).
+- FIX: Fixed start of any ADC disables VREF and VBAT (bug 3607467)
+  (backported to 2.4.4).
+- FIX: Fixed surprising non-CRLF lines in source (bug 3607380).
+- FIX: Fixed no entry point defined at link time (bug 3607319).
+- FIX: Fixed sdc_lld_collect_errors does not collect errors (bug 3606743).
+- FIX: Fixed STM32 CAN broadcast typo (bug 3606675).
+- FIX: Fixed STM32 CAN mailbox receive for second fifo (bug 3606673).
+- FIX: Fixed CAN_USE_SLEEP_MODE compilation problem (bug 3606616)(backported
+  to 2.4.4)(backported to 2.2.10).
+- FIX: Fixed missing HSE bypass option for STM32F103 (bug 3606274).
+- FIX: Fixed misplaced brace in icu_lld.c (bug 3605832)(backported to 2.4.4).
+- FIX: Fixed errors in MMC_SPI driver state machine (bug 3605794).
+- FIX: Fixed deadlock in Serial_USB driver (bug 3605793).
+- FIX: Fixed compile Error OLIMEX_SAM7_EX256/board.c (bug 3605058).
+- FIX: Fixed bug prevents calling adcStartConversionI() within ISR (bug
+  3605053)(backported to 2.4.4).
+- FIX: Fixed typo in platforms/STM32/can_lld.c (bug 3604657)(backported
+  to 2.4.4).
+- FIX: Added board files and demo for "WaveShare Open STM32F4 207I-C / 407I-C".
+  Added ULPI support to the STM32 USB (OTG-HS) driver.
+  Contributed by Dave Camarillo (bug 3603362).
+- FIX: Fixed adcSTM32EnableTSVREFE must be called AFTER adcStart (bug
+  3602950).
+- FIX: Fixed duplicated code in hal_lld.h (STM32F4xx) (bug 3602544)
+  (backported to 2.4.4).
+- FIX: Fixed #define typo in usb_lld.h (OTGv1) (bug 3602306).
+- FIX: Fixed STM32F0 RCC enable/disable/reset functions for CRC and WWDG
+  (bug 3602150).
+- FIX: Fixed missing parenthesis in use of macro arguments (bug 3601638).
+- FIX: Fixed compile errors in Posix-GCC demo (bug 3601621)(backported
+  to 2.4.4).
+- FIX: Fixed state checker error in MSP430 port (bug 3601460)(backported
+  to 2.4.4).
+- FIX: Fixed wrong assertion in UART driver (bug 3600789)(backported
+  to 2.4.4).
+- FIX: Fixed small bug in shell argument parsing code in shell_thread (bug
+  3599328)(backported to 2.4.4).
+- FIX: Fixed wrong condition in checksum offload of STM32 MAC driver (bug
+  3598720)(backported to 2.4.4).
+- FIX: Fixed error in STM32 MAC driver degrades performance (bug 3598719)
+  (backported to 2.4.4).
+- FIX: Fixed warning in STM32 ICU driver using IAR compiler (bug 3598177)
+  (backported to 2.4.3).
+- FIX: Fixed wrong SPI path in platform_f105_f107.mk (bug 3598151).
+- FIX: Fixed PHY powerdown issues not fixed (bug 3596911).
+- NEW: Added new pwmIsChannelEnabledI() API to the PWM driver, implemented
+  in the STM32 driver.
+- NEW: Added support for timers 6, 7, 9, 11, 12, 14 to the STM32 GPT driver.
+- NEW: Added support for timer 9 to the STM32 PWM and ICU drivers.
+- NEW: Relicensed parts of the distribution tree under the Apache 2.0
+  license in order to make specific parts of the code more accessible
+  to the open source community and adopters.
+- NEW: Added ADC(EQADC), HAL, ICU, PAL, PWM, Serial drivers for SPC5xx
+  platforms, tests to be added on the various sub-families.
+- NEW: Added support for SPC56ELxx, SPC560BCxx, SPC560Pxx, SPC560Mxx and
+  SPC564Axx platforms.
+- NEW: Added ADC/SDADC driver for the STM32F37x family.
+- NEW: Added support for the STM32F37x family.
+- NEW: Now the general documentation includes data extracted from the low
+  level driver templates. Per-platform/architecture documents are no more
+  required and will be replaced with technical articles and examples for
+  each specific driver.
+- NEW: Added a build test project for low level device driver templates.
+- NEW: Enhanced CAN driver model, support for mailboxes has been added. STM32
+  driver implementation upgraded.
+- NEW: Added ADC and PWM drivers for the AT91SAM7 platform, both donated
+  by Andrew Hannam.
+- NEW: Added kernel support for the SAM4L, an Atmel Studio 6 demo for the
+  SAM4L-EK board has been added.
+- NEW: Added an abstract file system interface written in C++, no
+  implementations yet.
+  TODO: Create a descendant interface for hierarchical file systems.
+  TODO: Create a FatFS wrapper implementing the interface and using a server
+  thread for synchronization.
+  TODO: Create an implementation over a read-only file system in code space.
+- NEW: CAN2 support for STM32 added.
+- NEW: Updated STM32L1xx header to the latest version.
+- NEW: Added an option to lwipthread to change the link status poll interval.
+- NEW: Added new C++ demo for the STM32F4-Discovery.
+- NEW: Updated C++ wrapper with a much more logical classes structure.
+       TODO: Opdate older C++ demos.
+- NEW: ADC driver implementation for the STM32F3xx, the driver supports also
+  the dual-ADC mode allowing for a very high combined bandwidth.
+- NEW: Added zero-copy capability to the STM32 MAC driver (experimental and
+  not tested yet).
+- NEW: Added an optional zero-copy mode API to the MAC driver model.
+- NEW: Added EXT driver to the STM32F3xx platform.
+- NEW: Improved the STM32 EXT driver to support more than 32 channels.
+- NEW: Added support for Olimex board STM32-LCD.
+- CHANGE: Removed dependency between crt0.c (GCC-ARMCMx) and the kernel
+  header ch.h.
+
 *** 2.5.1 ***
+- FIX: Fixed typo in chOQGetEmptyI() macro (bug 3595910)(backported to 2.2.10
+  and 2.4.3).
+- FIX: Fixed possible false detect of loaded prescaler in RTCv1 driver (bug 
+  3595489)(backported to 2.4.3).
+- FIX: Fixed unneeded RTC initialization when HAL_USE_RTC disabled
+  (bug 3594620)(backported to 2.4.3).
+- FIX: Fixed compilation issue with HAL_USE_RTC disabled (bug 3594083)
+  (backported to 2.4.3).
+- FIX: Fixed wasting of BKP registers in RTCv1 driver (bug 3594005)(backported
+  to 2.4.3).
+- FIX: Fixed potential problem with RTC_CRL_RSF bit (bug 3593972)(backported
+  to 2.4.3).
+- FIX: Fixed STM32F1x rtc_lld_init not functional (bug 3592817)(backported
+  to 2.4.3).
+- FIX: Fixed DMA reconfiguration problem in STM32 SPI driver (bug 3592809)
+  (backported to 2.4.3).
+- FIX: Fixed STM32 UART driver redundant initialization (bug 3592764)
+  (backported to 2.4.3).
+- FIX: Fixed wrong stack initializations in GCC STM32L1xx port files (bug
+  3591321)(backported to 2.4.3).
+- FIX: Fixed different redefinition for __main_stack_end__ symbol (bug
+  3591317)(backported to 2.4.3).
+- FIX: Fixed errors in STM32F0xx UART driver (bug 3589412)(backported
+  to 2.4.3).
+- FIX: Fixed MSP430 port_switch code for MSPGCC issue (bug 3587633)(backported
+  to 2.4.3).
+- FIX: Fixed workaround for errata in STM32F4-A devices (bug 3586425)
+  (backported to 2.4.3).
+- FIX: Fixed error in palWritePad() macro (bug 3586230)(backported to 2.2.10
+  and 2.4.3).
+- FIX: Fixed missing ; in testmbox.c (bug 3585979)(backported to 2.4.3).
+- FIX: Fixed STM32F4xx: Wrong CAN1 SCE interrupt number definition (bug
+  3581571).
+- FIX: Fixed STM32_P407: implement mmc_lld_is_card_inserted (bug 3581929)
+  (backported to 2.4.3).
+- FIX: Fixed double chSysInit() call in MSP430F1611 demo (bug 3581304)
+  (backported to 2.2.10 and 2.4.3).
+- FIX: Fixed patch for various demos (bug 3579734).
+- FIX: Fixed bug in abstract file interface (bug 3579660)(backported to
+  2.2.10 and 2.4.3).
+- FIX: Fixed wrong type for UART config registers (bug 3579434).
 - FIX: Fixed various typos and wrong limits in the STM32F4/F2 HAL driver
   (bug 3578944)(backported to 2.4.3).
 - FIX: Fixed ARM CMx crt0.c fails at low optimization levels (bug 3578927)
@@ -120,6 +387,10 @@
   (backported to 2.4.3).
 - FIX: Fixed STM8L, cosmic compiler: c_lreg not saved (bug 3566342)(backported
   to 2.2.10 and 2.4.3).
+- NEW: Initial support for STM32F30x (HAL, PAL, CAN, GPT, ICU, PWM, Serial,
+  SPI, UART, USB).
+- NEW: AT91SAM7A3 I2C support.
+- NEW: AT91SAM7A3 basic support.
 - NEW: Unified the STM32F4xx and STM32F2xx platform code. The STM32F2xx now is
   only supported as an STM32F4xx variant and not tested separately.
 - NEW: Updated STM32F1, F2, F4, L1 ADC drivers to allow HW triggering.
@@ -139,6 +410,11 @@
   ARMCMx port, now it can support multiple core types.
 - NEW: Updated the Power Architecture rules.mk file to put object and listing
   files into a ./build directory like ARM ports already do.
+- CHANGE: The STM32 Serial driver has been split in two distinct versions,
+  one for older devices up the STM32F4xx, the other for new devices starting
+  from the STM32F0xx.
+  (TODO: Update IAR and Keil projects because different paths, update
+         documentation projects).
 
 *** 2.5.0 ***
 - FIX: Fixed anomaly in USB enumeration (bug 3565325)(backported to 2.4.3).

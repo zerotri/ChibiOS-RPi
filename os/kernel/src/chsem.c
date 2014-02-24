@@ -1,6 +1,6 @@
 /*
     ChibiOS/RT - Copyright (C) 2006,2007,2008,2009,2010,
-                 2011,2012 Giovanni Di Sirio.
+                 2011,2012,2013 Giovanni Di Sirio.
 
     This file is part of ChibiOS/RT.
 
@@ -340,14 +340,14 @@ void chSemAddCounterI(Semaphore *sp, cnt_t n) {
   }
 }
 
-#if CH_USE_SEMSW
+#if CH_USE_SEMSW || defined(__DOXYGEN__)
 /**
  * @brief   Performs atomic signal and wait operations on two semaphores.
  * @pre     The configuration option @p CH_USE_SEMSW must be enabled in order
  *          to use this function.
  *
  * @param[in] sps       pointer to a @p Semaphore structure to be signaled
- * @param[in] spw       pointer to a @p Semaphore structure to be wait on
+ * @param[in] spw       pointer to a @p Semaphore structure to wait on
  * @return              A message specifying how the invoking thread has been
  *                      released from the semaphore.
  * @retval RDY_OK       if the thread has not stopped on the semaphore or the

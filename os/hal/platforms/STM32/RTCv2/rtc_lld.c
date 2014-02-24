@@ -1,21 +1,17 @@
 /*
-    ChibiOS/RT - Copyright (C) 2006,2007,2008,2009,2010,
-                 2011,2012 Giovanni Di Sirio.
+    ChibiOS/RT - Copyright (C) 2006-2013 Giovanni Di Sirio
 
-    This file is part of ChibiOS/RT.
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
 
-    ChibiOS/RT is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 3 of the License, or
-    (at your option) any later version.
+        http://www.apache.org/licenses/LICENSE-2.0
 
-    ChibiOS/RT is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
 */
 /*
    Concepts and parts of this file have been contributed by Uladzimir Pylinsky
@@ -36,6 +32,10 @@
 #if HAL_USE_RTC || defined(__DOXYGEN__)
 
 /*===========================================================================*/
+/* Driver local definitions.                                                 */
+/*===========================================================================*/
+
+/*===========================================================================*/
 /* Driver exported variables.                                                */
 /*===========================================================================*/
 
@@ -45,7 +45,7 @@
 RTCDriver RTCD1;
 
 /*===========================================================================*/
-/* Driver local variables.                                                   */
+/* Driver local variables and types.                                         */
 /*===========================================================================*/
 
 /*===========================================================================*/
@@ -187,6 +187,7 @@ void rtc_lld_set_alarm(RTCDriver *rtcp,
       rtcp->id_rtc->CR &= ~RTC_CR_ALRAE;
     }
   }
+#if RTC_ALARMS == 2
   else{
     if (alarmspec != NULL){
       rtcp->id_rtc->CR &= ~RTC_CR_ALRBE;
@@ -201,6 +202,7 @@ void rtc_lld_set_alarm(RTCDriver *rtcp,
       rtcp->id_rtc->CR &= ~RTC_CR_ALRBE;
     }
   }
+#endif /* RTC_ALARMS == 2 */
 }
 
 /**
@@ -217,8 +219,10 @@ void rtc_lld_get_alarm(RTCDriver *rtcp,
                        RTCAlarm *alarmspec) {
   if (alarm == 1)
     alarmspec->tv_datetime = rtcp->id_rtc->ALRMAR;
+#if RTC_ALARMS == 2
   else
     alarmspec->tv_datetime = rtcp->id_rtc->ALRMBR;
+#endif
 }
 
 /**
@@ -231,6 +235,7 @@ void rtc_lld_get_alarm(RTCDriver *rtcp,
  *
  * @api
  */
+#if RTC_HAS_PERIODIC_WAKEUPS
 void rtcSetPeriodicWakeup_v2(RTCDriver *rtcp, RTCWakeup *wakeupspec){
   chDbgCheck((wakeupspec->wakeup != 0x30000),
               "rtc_lld_set_periodic_wakeup, forbidden combination");
@@ -249,6 +254,7 @@ void rtcSetPeriodicWakeup_v2(RTCDriver *rtcp, RTCWakeup *wakeupspec){
     rtcp->id_rtc->CR &= ~RTC_CR_WUTE;
   }
 }
+#endif /* RTC_HAS_PERIODIC_WAKEUPS */
 
 /**
  * @brief     Gets time of periodic wakeup.
@@ -260,11 +266,13 @@ void rtcSetPeriodicWakeup_v2(RTCDriver *rtcp, RTCWakeup *wakeupspec){
  *
  * @api
  */
+#if RTC_HAS_PERIODIC_WAKEUPS
 void rtcGetPeriodicWakeup_v2(RTCDriver *rtcp, RTCWakeup *wakeupspec){
   wakeupspec->wakeup  = 0;
   wakeupspec->wakeup |= rtcp->id_rtc->WUTR;
   wakeupspec->wakeup |= (((uint32_t)rtcp->id_rtc->CR) & 0x7) << 16;
 }
+#endif /* RTC_HAS_PERIODIC_WAKEUPS */
 
 /**
  * @brief   Get current time in format suitable for usage in FatFS.

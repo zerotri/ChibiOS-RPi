@@ -1,21 +1,17 @@
 /*
-    ChibiOS/RT - Copyright (C) 2006,2007,2008,2009,2010,
-                 2011,2012 Giovanni Di Sirio.
+    ChibiOS/RT - Copyright (C) 2006-2013 Giovanni Di Sirio
 
-    This file is part of ChibiOS/RT.
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
 
-    ChibiOS/RT is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 3 of the License, or
-    (at your option) any later version.
+        http://www.apache.org/licenses/LICENSE-2.0
 
-    ChibiOS/RT is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
 */
 
 /**
@@ -41,15 +37,60 @@
 /**
  * @brief   Platform name.
  */
-#define PLATFORM_NAME   "ATmega128"
+#define PLATFORM_NAME   "AVR"
+
+/**
+ * @brief  Timer maximum value 
+ */
+#define AVR_TIMER_COUNTER_MAX 255
 
 /*===========================================================================*/
 /* Driver pre-compile time settings.                                         */
 /*===========================================================================*/
 
+/* Work out what the timer interrupt is called on this MCU */
+#ifdef TIMER0_COMPA_vect
+  #define AVR_TIMER_VECT TIMER0_COMPA_vect
+#elif defined(TIMER_COMPA_vect)
+  #define AVR_TIMER_VECT TIMER_COMPA_vect
+#elif defined(TIMER0_COMP_vect)
+  #define AVR_TIMER_VECT TIMER0_COMP_vect
+#else
+  #error "Cannot find interrupt vector name for timer"
+#endif
+
 /*===========================================================================*/
 /* Derived constants and error checks.                                       */
 /*===========================================================================*/
+
+/* Find the most suitable prescaler setting for the desired CH_FREQUENCY */
+#if ((F_CPU / CH_FREQUENCY) <= AVR_TIMER_COUNTER_MAX)
+  #define AVR_TIMER_PRESCALER 1
+  #define AVR_TIMER_PRESCALER_BITS (0 << CS02)  | (0 << CS01)  | (1 << CS00); /* CLK      */
+#elif ((F_CPU / CH_FREQUENCY / 8) <= AVR_TIMER_COUNTER_MAX)
+  #define AVR_TIMER_PRESCALER 8
+  #define AVR_TIMER_PRESCALER_BITS (0 << CS02)  | (1 << CS01)  | (0 << CS00); /* CLK/8    */
+#elif ((F_CPU / CH_FREQUENCY / 64) <= AVR_TIMER_COUNTER_MAX)
+  #define AVR_TIMER_PRESCALER 64
+  #define AVR_TIMER_PRESCALER_BITS (0 << CS02)  | (1 << CS01)  | (1 << CS00); /* CLK/64   */
+#elif ((F_CPU / CH_FREQUENCY / 256) <= AVR_TIMER_COUNTER_MAX)
+  #define AVR_TIMER_PRESCALER 256
+  #define AVR_TIMER_PRESCALER_BITS (1 << CS02)  | (0 << CS01)  | (0 << CS00); /* CLK/256  */
+#elif ((F_CPU / CH_FREQUENCY / 1024) <= AVR_TIMER_COUNTER_MAX)
+  #define AVR_TIMER_PRESCALER 1024
+  #define AVR_TIMER_PRESCALER_BITS (1 << CS02)  | (0 << CS01)  | (1 << CS00); /* CLK/1024 */
+#else
+  #error "Frequency too low for timer, please set CH_FREQUENCY to a higher value"
+#endif
+
+#define AVR_TIMER_COUNTER (F_CPU / CH_FREQUENCY / AVR_TIMER_PRESCALER)
+
+/* Test if CH_FREQUENCY can be matched exactly using this timer */
+#define F_CPU_ (AVR_TIMER_COUNTER * AVR_TIMER_PRESCALER * CH_FREQUENCY)
+#if (F_CPU_ != F_CPU)
+  #warning "CH_FREQUENCY cannot be generated exactly using timer"
+#endif
+#undef F_CPU_
 
 /*===========================================================================*/
 /* Driver data structures and types.                                         */

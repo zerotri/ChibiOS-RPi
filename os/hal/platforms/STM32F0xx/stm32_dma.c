@@ -1,21 +1,17 @@
 /*
-    ChibiOS/RT - Copyright (C) 2006,2007,2008,2009,2010,
-                 2011,2012 Giovanni Di Sirio.
+    ChibiOS/RT - Copyright (C) 2006-2013 Giovanni Di Sirio
 
-    This file is part of ChibiOS/RT.
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
 
-    ChibiOS/RT is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 3 of the License, or
-    (at your option) any later version.
+        http://www.apache.org/licenses/LICENSE-2.0
 
-    ChibiOS/RT is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
 */
 
 /**
@@ -113,13 +109,13 @@ static dma_isr_redir_t dma_isr_redir[STM32_DMA_STREAMS];
  *
  * @isr
  */
-CH_IRQ_HANDLER(DMA1_Ch1_IRQHandler) {
+CH_IRQ_HANDLER(Vector64) {
   uint32_t flags;
 
   CH_IRQ_PROLOGUE();
 
   flags = (DMA1->ISR >> 0) & STM32_DMA_ISR_MASK;
-  DMA1->IFCR = STM32_DMA_ISR_MASK << 0;
+  DMA1->IFCR = flags << 0;
   if (dma_isr_redir[0].dma_func)
     dma_isr_redir[0].dma_func(dma_isr_redir[0].dma_param, flags);
 
@@ -131,7 +127,7 @@ CH_IRQ_HANDLER(DMA1_Ch1_IRQHandler) {
  *
  * @isr
  */
-CH_IRQ_HANDLER(DMA1_Ch2_3_IRQHandler) {
+CH_IRQ_HANDLER(Vector68) {
   uint32_t flags;
 
   CH_IRQ_PROLOGUE();
@@ -139,7 +135,7 @@ CH_IRQ_HANDLER(DMA1_Ch2_3_IRQHandler) {
   /* Check on channel 2.*/
   flags = (DMA1->ISR >> 4) & STM32_DMA_ISR_MASK;
   if (flags & STM32_DMA_ISR_MASK) {
-    DMA1->IFCR = STM32_DMA_ISR_MASK << 4;
+    DMA1->IFCR = flags << 4;
     if (dma_isr_redir[1].dma_func)
       dma_isr_redir[1].dma_func(dma_isr_redir[1].dma_param, flags);
   }
@@ -147,7 +143,7 @@ CH_IRQ_HANDLER(DMA1_Ch2_3_IRQHandler) {
   /* Check on channel 3.*/
   flags = (DMA1->ISR >> 8) & STM32_DMA_ISR_MASK;
   if (flags & STM32_DMA_ISR_MASK) {
-    DMA1->IFCR = STM32_DMA_ISR_MASK << 8;
+    DMA1->IFCR = flags << 8;
     if (dma_isr_redir[2].dma_func)
       dma_isr_redir[2].dma_func(dma_isr_redir[2].dma_param, flags);
   }
@@ -160,7 +156,7 @@ CH_IRQ_HANDLER(DMA1_Ch2_3_IRQHandler) {
  *
  * @isr
  */
-CH_IRQ_HANDLER(DMA1_Ch4_5_IRQHandler) {
+CH_IRQ_HANDLER(Vector6C) {
   uint32_t flags;
 
   CH_IRQ_PROLOGUE();
@@ -168,7 +164,7 @@ CH_IRQ_HANDLER(DMA1_Ch4_5_IRQHandler) {
   /* Check on channel 4.*/
   flags = (DMA1->ISR >> 12) & STM32_DMA_ISR_MASK;
   if (flags & STM32_DMA_ISR_MASK) {
-    DMA1->IFCR = STM32_DMA_ISR_MASK << 12;
+    DMA1->IFCR = flags << 12;
     if (dma_isr_redir[3].dma_func)
       dma_isr_redir[3].dma_func(dma_isr_redir[3].dma_param, flags);
   }
@@ -176,7 +172,7 @@ CH_IRQ_HANDLER(DMA1_Ch4_5_IRQHandler) {
   /* Check on channel 5.*/
   flags = (DMA1->ISR >> 16) & STM32_DMA_ISR_MASK;
   if (flags & STM32_DMA_ISR_MASK) {
-    DMA1->IFCR = STM32_DMA_ISR_MASK << 16;
+    DMA1->IFCR = flags << 16;
     if (dma_isr_redir[4].dma_func)
       dma_isr_redir[4].dma_func(dma_isr_redir[4].dma_param, flags);
   }
@@ -233,7 +229,7 @@ bool_t dmaStreamAllocate(const stm32_dma_stream_t *dmastp,
                          stm32_dmaisr_t func,
                          void *param) {
 
-  chDbgCheck(dmastp != NULL, "dmaAllocate");
+  chDbgCheck(dmastp != NULL, "dmaStreamAllocate");
 
   /* Checks if the stream is already taken.*/
   if ((dma_streams_mask & (1 << dmastp->selfindex)) != 0)
@@ -274,11 +270,11 @@ bool_t dmaStreamAllocate(const stm32_dma_stream_t *dmastp,
  */
 void dmaStreamRelease(const stm32_dma_stream_t *dmastp) {
 
-  chDbgCheck(dmastp != NULL, "dmaRelease");
+  chDbgCheck(dmastp != NULL, "dmaStreamRelease");
 
   /* Check if the streams is not taken.*/
   chDbgAssert((dma_streams_mask & (1 << dmastp->selfindex)) != 0,
-              "dmaRelease(), #1", "not allocated");
+              "dmaStreamRelease(), #1", "not allocated");
 
   /* Disables the associated IRQ vector.*/
   nvicDisableVector(dmastp->vector);

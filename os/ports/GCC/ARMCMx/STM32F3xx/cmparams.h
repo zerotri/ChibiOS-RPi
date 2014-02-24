@@ -1,6 +1,6 @@
 /*
     ChibiOS/RT - Copyright (C) 2006,2007,2008,2009,2010,
-                 2011,2012 Giovanni Di Sirio.
+                 2011,2012,2013 Giovanni Di Sirio.
 
     This file is part of ChibiOS/RT.
 
@@ -19,13 +19,13 @@
 */
 
 /**
- * @file    GCC/ARMCMx/STM32F4xx/cmparams.h
- * @brief   ARM Cortex-M3 parameters for the STM32F4xx.
+ * @file    GCC/ARMCMx/STM32F3xx/cmparams.h
+ * @brief   ARM Cortex-M4 parameters for the STM32F3xx.
  *
- * @defgroup ARMCMx_STM32F4xx STM32F4xx Specific Parameters
+ * @defgroup ARMCMx_STM32F3xx STM32F3xx Specific Parameters
  * @ingroup ARMCMx_SPECIFIC
  * @details This file contains the Cortex-M4 specific parameters for the
- *          STM32F4xx platform.
+ *          STM32F3xx platform.
  * @{
  */
 

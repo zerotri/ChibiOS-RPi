@@ -1,21 +1,17 @@
 /*
-    ChibiOS/RT - Copyright (C) 2006,2007,2008,2009,2010,
-                 2011,2012 Giovanni Di Sirio.
+    ChibiOS/RT - Copyright (C) 2006-2013 Giovanni Di Sirio
 
-    This file is part of ChibiOS/RT.
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
 
-    ChibiOS/RT is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 3 of the License, or
-    (at your option) any later version.
+        http://www.apache.org/licenses/LICENSE-2.0
 
-    ChibiOS/RT is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
 */
 
 /**
@@ -59,6 +55,22 @@
   STM32_DMA_GETCHANNEL(STM32_UART_USART3_TX_DMA_STREAM,                     \
                        STM32_USART3_TX_DMA_CHN)
 
+#define UART4_RX_DMA_CHANNEL                                                \
+  STM32_DMA_GETCHANNEL(STM32_UART_UART4_RX_DMA_STREAM,                      \
+                       STM32_UART4_RX_DMA_CHN)
+
+#define UART4_TX_DMA_CHANNEL                                                \
+  STM32_DMA_GETCHANNEL(STM32_UART_UART4_TX_DMA_STREAM,                      \
+                       STM32_UART4_TX_DMA_CHN)
+
+#define UART5_RX_DMA_CHANNEL                                                \
+  STM32_DMA_GETCHANNEL(STM32_UART_UART5_RX_DMA_STREAM,                      \
+                       STM32_UART5_RX_DMA_CHN)
+
+#define UART5_TX_DMA_CHANNEL                                                \
+  STM32_DMA_GETCHANNEL(STM32_UART_UART5_TX_DMA_STREAM,                      \
+                       STM32_UART5_TX_DMA_CHN)
+
 #define USART6_RX_DMA_CHANNEL                                               \
   STM32_DMA_GETCHANNEL(STM32_UART_USART6_RX_DMA_STREAM,                     \
                        STM32_USART6_RX_DMA_CHN)
@@ -66,6 +78,14 @@
 #define USART6_TX_DMA_CHANNEL                                               \
   STM32_DMA_GETCHANNEL(STM32_UART_USART6_TX_DMA_STREAM,                     \
                        STM32_USART6_TX_DMA_CHN)
+
+#define STM32_UART45_CR2_CHECK_MASK                                         \
+  (USART_CR2_STOP_0 | USART_CR2_CLKEN | USART_CR2_CPOL | USART_CR2_CPHA |   \
+   USART_CR2_LBCL)
+
+#define STM32_UART45_CR3_CHECK_MASK                                         \
+  (USART_CR3_CTSIE | USART_CR3_CTSE | USART_CR3_RTSE | USART_CR3_SCEN |     \
+   USART_CR3_NACK)
 
 /*===========================================================================*/
 /* Driver exported variables.                                                */
@@ -86,6 +106,15 @@ UARTDriver UARTD2;
 UARTDriver UARTD3;
 #endif
 
+/** @brief UART4 UART driver identifier.*/
+#if STM32_UART_USE_UART4 || defined(__DOXYGEN__)
+UARTDriver UARTD4;
+#endif
+
+/** @brief UART5 UART driver identifier.*/
+#if STM32_UART_USE_UART5 || defined(__DOXYGEN__)
+UARTDriver UARTD5;
+#endif
 
 /** @brief USART6 UART driver identifier.*/
 #if STM32_UART_USE_USART6 || defined(__DOXYGEN__)
@@ -93,7 +122,7 @@ UARTDriver UARTD6;
 #endif
 
 /*===========================================================================*/
-/* Driver local variables.                                                   */
+/* Driver local variables and types.                                         */
 /*===========================================================================*/
 
 /*===========================================================================*/
@@ -191,15 +220,15 @@ static void usart_start(UARTDriver *uartp) {
 
   /* Note that some bits are enforced because required for correct driver
      operations.*/
+  u->CR2 = uartp->config->cr2 | USART_CR2_LBDIE;
+  u->CR3 = uartp->config->cr3 | USART_CR3_DMAT | USART_CR3_DMAR |
+                                USART_CR3_EIE;
   if (uartp->config->txend2_cb == NULL)
     cr1 = USART_CR1_UE | USART_CR1_PEIE | USART_CR1_TE | USART_CR1_RE;
   else
     cr1 = USART_CR1_UE | USART_CR1_PEIE | USART_CR1_TE | USART_CR1_RE |
           USART_CR1_TCIE;
   u->CR1 = uartp->config->cr1 | cr1;
-  u->CR2 = uartp->config->cr2 | USART_CR2_LBDIE;
-  u->CR3 = uartp->config->cr3 | USART_CR3_DMAT | USART_CR3_DMAR |
-                                USART_CR3_EIE;
 
   /* Starting the receiver idle loop.*/
   set_rx_idle_loop(uartp);
@@ -362,6 +391,44 @@ CH_IRQ_HANDLER(STM32_USART3_HANDLER) {
 }
 #endif /* STM32_UART_USE_USART3 */
 
+#if STM32_UART_USE_UART4 || defined(__DOXYGEN__)
+#if !defined(STM32_UART4_HANDLER)
+#error "STM32_UART4_HANDLER not defined"
+#endif
+/**
+ * @brief   UART4 IRQ handler.
+ *
+ * @isr
+ */
+CH_IRQ_HANDLER(STM32_UART4_HANDLER) {
+
+  CH_IRQ_PROLOGUE();
+
+  serve_usart_irq(&UARTD4);
+
+  CH_IRQ_EPILOGUE();
+}
+#endif /* STM32_UART_USE_UART4 */
+
+#if STM32_UART_USE_UART5 || defined(__DOXYGEN__)
+#if !defined(STM32_UART5_HANDLER)
+#error "STM32_UART5_HANDLER not defined"
+#endif
+/**
+ * @brief   UART5 IRQ handler.
+ *
+ * @isr
+ */
+CH_IRQ_HANDLER(STM32_UART5_HANDLER) {
+
+  CH_IRQ_PROLOGUE();
+
+  serve_usart_irq(&UARTD5);
+
+  CH_IRQ_EPILOGUE();
+}
+#endif /* STM32_UART_USE_UART5 */
+
 #if STM32_UART_USE_USART6 || defined(__DOXYGEN__)
 #if !defined(STM32_USART6_HANDLER)
 #error "STM32_USART6_HANDLER not defined"
@@ -395,6 +462,7 @@ void uart_lld_init(void) {
 #if STM32_UART_USE_USART1
   uartObjectInit(&UARTD1);
   UARTD1.usart   = USART1;
+  UARTD1.dmamode = STM32_DMA_CR_DMEIE | STM32_DMA_CR_TEIE;
   UARTD1.dmarx   = STM32_DMA_STREAM(STM32_UART_USART1_RX_DMA_STREAM);
   UARTD1.dmatx   = STM32_DMA_STREAM(STM32_UART_USART1_TX_DMA_STREAM);
 #endif
@@ -402,6 +470,7 @@ void uart_lld_init(void) {
 #if STM32_UART_USE_USART2
   uartObjectInit(&UARTD2);
   UARTD2.usart   = USART2;
+  UARTD2.dmamode = STM32_DMA_CR_DMEIE | STM32_DMA_CR_TEIE;
   UARTD2.dmarx   = STM32_DMA_STREAM(STM32_UART_USART2_RX_DMA_STREAM);
   UARTD2.dmatx   = STM32_DMA_STREAM(STM32_UART_USART2_TX_DMA_STREAM);
 #endif
@@ -409,8 +478,25 @@ void uart_lld_init(void) {
 #if STM32_UART_USE_USART3
   uartObjectInit(&UARTD3);
   UARTD3.usart   = USART3;
+  UARTD3.dmamode = STM32_DMA_CR_DMEIE | STM32_DMA_CR_TEIE;
   UARTD3.dmarx   = STM32_DMA_STREAM(STM32_UART_USART3_RX_DMA_STREAM);
   UARTD3.dmatx   = STM32_DMA_STREAM(STM32_UART_USART3_TX_DMA_STREAM);
+#endif
+
+#if STM32_UART_USE_UART4
+  uartObjectInit(&UARTD4);
+  UARTD4.usart   = UART4;
+  UARTD4.dmamode = STM32_DMA_CR_DMEIE | STM32_DMA_CR_TEIE;
+  UARTD4.dmarx   = STM32_DMA_STREAM(STM32_UART_UART4_RX_DMA_STREAM);
+  UARTD4.dmatx   = STM32_DMA_STREAM(STM32_UART_UART4_TX_DMA_STREAM);
+#endif
+
+#if STM32_UART_USE_UART5
+  uartObjectInit(&UARTD5);
+  UARTD5.usart   = UART5;
+  UARTD5.dmamode = STM32_DMA_CR_DMEIE | STM32_DMA_CR_TEIE;
+  UARTD5.dmarx   = STM32_DMA_STREAM(STM32_UART_UART5_RX_DMA_STREAM);
+  UARTD5.dmatx   = STM32_DMA_STREAM(STM32_UART_UART5_TX_DMA_STREAM);
 #endif
 
 #if STM32_UART_USE_USART6
@@ -429,8 +515,6 @@ void uart_lld_init(void) {
  * @notapi
  */
 void uart_lld_start(UARTDriver *uartp) {
-
-  uartp->dmamode = STM32_DMA_CR_DMEIE | STM32_DMA_CR_TEIE;
 
   if (uartp->state == UART_STOP) {
 #if STM32_UART_USE_USART1
@@ -496,6 +580,64 @@ void uart_lld_start(UARTDriver *uartp) {
     }
 #endif
 
+#if STM32_UART_USE_UART4
+    if (&UARTD4 == uartp) {
+      bool_t b;
+
+      chDbgAssert((uartp->config->cr2 & STM32_UART45_CR2_CHECK_MASK) == 0,
+                  "uart_lld_start(), #7",
+                  "specified invalid bits in UART4 CR2 register settings");
+      chDbgAssert((uartp->config->cr3 & STM32_UART45_CR3_CHECK_MASK) == 0,
+                  "uart_lld_start(), #8",
+                  "specified invalid bits in UART4 CR3 register settings");
+
+      b = dmaStreamAllocate(uartp->dmarx,
+                            STM32_UART_UART4_IRQ_PRIORITY,
+                            (stm32_dmaisr_t)uart_lld_serve_rx_end_irq,
+                            (void *)uartp);
+      chDbgAssert(!b, "uart_lld_start(), #9", "stream already allocated");
+      b = dmaStreamAllocate(uartp->dmatx,
+                            STM32_UART_UART4_IRQ_PRIORITY,
+                            (stm32_dmaisr_t)uart_lld_serve_tx_end_irq,
+                            (void *)uartp);
+      chDbgAssert(!b, "uart_lld_start(), #10", "stream already allocated");
+      rccEnableUART4(FALSE);
+      nvicEnableVector(STM32_UART4_NUMBER,
+                       CORTEX_PRIORITY_MASK(STM32_UART_UART4_IRQ_PRIORITY));
+      uartp->dmamode |= STM32_DMA_CR_CHSEL(UART4_RX_DMA_CHANNEL) |
+                        STM32_DMA_CR_PL(STM32_UART_UART4_DMA_PRIORITY);
+    }
+#endif
+
+#if STM32_UART_USE_UART5
+    if (&UARTD5 == uartp) {
+      bool_t b;
+
+      chDbgAssert((uartp->config->cr2 & STM32_UART45_CR2_CHECK_MASK) == 0,
+                  "uart_lld_start(), #11",
+                  "specified invalid bits in UART5 CR2 register settings");
+      chDbgAssert((uartp->config->cr3 & STM32_UART45_CR3_CHECK_MASK) == 0,
+                  "uart_lld_start(), #12",
+                  "specified invalid bits in UART5 CR3 register settings");
+
+      b = dmaStreamAllocate(uartp->dmarx,
+                            STM32_UART_UART5_IRQ_PRIORITY,
+                            (stm32_dmaisr_t)uart_lld_serve_rx_end_irq,
+                            (void *)uartp);
+      chDbgAssert(!b, "uart_lld_start(), #13", "stream already allocated");
+      b = dmaStreamAllocate(uartp->dmatx,
+                            STM32_UART_UART5_IRQ_PRIORITY,
+                            (stm32_dmaisr_t)uart_lld_serve_tx_end_irq,
+                            (void *)uartp);
+      chDbgAssert(!b, "uart_lld_start(), #14", "stream already allocated");
+      rccEnableUART5(FALSE);
+      nvicEnableVector(STM32_UART5_NUMBER,
+                       CORTEX_PRIORITY_MASK(STM32_UART_UART5_IRQ_PRIORITY));
+      uartp->dmamode |= STM32_DMA_CR_CHSEL(UART5_RX_DMA_CHANNEL) |
+                        STM32_DMA_CR_PL(STM32_UART_UART5_DMA_PRIORITY);
+    }
+#endif
+
 #if STM32_UART_USE_USART6
     if (&UARTD6 == uartp) {
       bool_t b;
@@ -503,12 +645,12 @@ void uart_lld_start(UARTDriver *uartp) {
                             STM32_UART_USART6_IRQ_PRIORITY,
                             (stm32_dmaisr_t)uart_lld_serve_rx_end_irq,
                             (void *)uartp);
-      chDbgAssert(!b, "uart_lld_start(), #5", "stream already allocated");
+      chDbgAssert(!b, "uart_lld_start(), #15", "stream already allocated");
       b = dmaStreamAllocate(uartp->dmatx,
                             STM32_UART_USART6_IRQ_PRIORITY,
                             (stm32_dmaisr_t)uart_lld_serve_tx_end_irq,
                             (void *)uartp);
-      chDbgAssert(!b, "uart_lld_start(), #6", "stream already allocated");
+      chDbgAssert(!b, "uart_lld_start(), #16", "stream already allocated");
       rccEnableUSART6(FALSE);
       nvicEnableVector(STM32_USART6_NUMBER,
                        CORTEX_PRIORITY_MASK(STM32_UART_USART6_IRQ_PRIORITY));
@@ -565,6 +707,22 @@ void uart_lld_stop(UARTDriver *uartp) {
     if (&UARTD3 == uartp) {
       nvicDisableVector(STM32_USART3_NUMBER);
       rccDisableUSART3(FALSE);
+      return;
+    }
+#endif
+
+#if STM32_UART_USE_UART4
+    if (&UARTD4 == uartp) {
+      nvicDisableVector(STM32_UART4_NUMBER);
+      rccDisableUART4(FALSE);
+      return;
+    }
+#endif
+
+#if STM32_UART_USE_UART5
+    if (&UARTD5 == uartp) {
+      nvicDisableVector(STM32_UART5_NUMBER);
+      rccDisableUART5(FALSE);
       return;
     }
 #endif

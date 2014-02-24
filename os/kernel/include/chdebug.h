@@ -1,6 +1,6 @@
 /*
     ChibiOS/RT - Copyright (C) 2006,2007,2008,2009,2010,
-                 2011,2012 Giovanni Di Sirio.
+                 2011,2012,2013 Giovanni Di Sirio.
 
     This file is part of ChibiOS/RT.
 
@@ -88,8 +88,8 @@
 #define dbg_check_unlock_from_isr()
 #define dbg_check_enter_isr()
 #define dbg_check_leave_isr()
-#define chDbgCheckClassI();
-#define chDbgCheckClassS();
+#define chDbgCheckClassI()
+#define chDbgCheckClassS()
 #else
 #define dbg_enter_lock() (dbg_lock_cnt = 1)
 #define dbg_leave_lock() (dbg_lock_cnt = 0)
@@ -142,7 +142,7 @@ extern ch_trace_buffer_t dbg_trace_buffer;
  * @{
  */
 /**
- * @brief   Function parameter check.
+ * @brief   Function parameters check.
  * @details If the condition check fails then the kernel panics and halts.
  * @note    The condition is tested only if the @p CH_DBG_ENABLE_CHECKS switch
  *          is specified in @p chconf.h else the macro does nothing.
