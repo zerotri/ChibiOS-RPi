@@ -38,6 +38,25 @@ endif
 ##############################################################################
 
 ##############################################################################
+# Architecture or project specific options
+#
+
+# Enables the use of FPU on Cortex-M4.
+# Enable this if you really want to use the STM FWLib.
+ifeq ($(USE_FPU),)
+  USE_FPU = yes
+endif
+
+# Enable this if you really want to use the STM FWLib.
+ifeq ($(USE_FWLIB),)
+  USE_FWLIB = no
+endif
+
+#
+# Architecture or project specific options
+##############################################################################
+
+##############################################################################
 # Project, sources and paths
 #
 
@@ -51,6 +70,7 @@ include $(CHIBIOS)/os/hal/platforms/BCM2835/platform.mk
 include $(CHIBIOS)/os/hal/hal.mk
 include $(CHIBIOS)/os/ports/GCC/ARM/BCM2835/port.mk
 include $(CHIBIOS)/os/kernel/kernel.mk
+include $(CHIBIOS)/os/various/cpp_wrappers/kernel.mk
 
 # Define linker script file here
 LDSCRIPT= $(PORTLD)/BCM2835.ld
@@ -63,17 +83,15 @@ CSRC = $(PORTSRC) \
        $(HALSRC) \
        $(PLATFORMSRC) \
        $(BOARDSRC) \
+       $(CHIBIOS)/os/various/shell.c \
        $(CHIBIOS)/os/various/evtimer.c \
        $(CHIBIOS)/os/various/chprintf.c
 
 
 # C++ sources that can be compiled in ARM or THUMB mode depending on the global
 # setting.
-CPPSRC = $(CHIBIOS)/os/various/ch.cpp \
-          main.cpp \
-          $(CHIBIOS)/os/contrib/Adafruit_GFX.cpp \
-          $(CHIBIOS)/os/contrib/Adafruit_HX8340B.cpp \
-          $(CHIBIOS)/os/contrib/Print.cpp
+CPPSRC = $(CHCPPSRC) \
+          main.cpp
 
 # C sources to be compiled in ARM mode regardless of the global setting.
 # NOTE: Mixing ARM and THUMB mode enables the -mthumb-interwork compiler
@@ -100,6 +118,7 @@ ASMSRC = $(PORTASM)
 
 INCDIR = $(PORTINC) $(KERNINC) $(TESTINC) \
          $(HALINC) $(PLATFORMINC) $(BOARDINC) \
+         $(CHCPPINC) \
          $(CHIBIOS)/os/various \
          $(CHIBIOS)/os/contrib
 
@@ -129,7 +148,7 @@ HEX  = $(CP) -O ihex
 BIN  = $(CP) -O binary
 
 # ARM-specific options here
-AOPT =
+AOPT = -mtune=arm1176jzf-s -mfloat-abi=hard -mfpu=vfp -ffast-math
 
 # THUMB-specific options here
 TOPT = -mthumb -DTHUMB

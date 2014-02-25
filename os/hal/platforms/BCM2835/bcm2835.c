@@ -23,3 +23,10 @@ void bcm2835_delay(uint32_t n)
   for(i = 0; i < n; i++);
 }
 
+void bcm2835_memory_barrier()
+{
+	asm volatile( "mcr p15, 0, ip, c7, c5, 0" );	// Invalidate instruction cache
+  asm volatile( "mcr p15, 0, ip, c7, c5, 6" );	// Invalidate BTB
+  asm volatile( "mcr p15, 0, ip, c7, c10, 4" );	// Drain write buffer
+  asm volatile( "mcr p15, 0, ip, c7, c5, 4" );	//Prefetch flush
+}

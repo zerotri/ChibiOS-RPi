@@ -393,6 +393,7 @@ typedef struct bscdevice_t bscdevice_t;
 extern "C" {
 #endif
 
+  void bcm2835_memory_barrier(void);
   void bcm2835_gpio_fnsel(uint32_t gpio_pin, uint32_t gpio_function);
   void bcm2835_delay(uint32_t n);
 

@@ -6,7 +6,9 @@ PLATFORMSRC = ${CHIBIOS}/os/hal/platforms/BCM2835/hal_lld.c \
               ${CHIBIOS}/os/hal/platforms/BCM2835/spi_lld.c \
               ${CHIBIOS}/os/hal/platforms/BCM2835/gpt_lld.c \
               ${CHIBIOS}/os/hal/platforms/BCM2835/pwm_lld.c \
-              ${CHIBIOS}/os/hal/platforms/BCM2835/bcm2835.c
+              ${CHIBIOS}/os/hal/platforms/BCM2835/bcm2835.c \
+              ${CHIBIOS}/os/hal/platforms/BCM2835/videocore/mailbox/mailbox_lld.c \
+              ${CHIBIOS}/os/hal/platforms/BCM2835/videocore/gpu/gpu_lld.c
 
 # Required include directories
 PLATFORMINC = ${CHIBIOS}/os/hal/platforms/BCM2835
